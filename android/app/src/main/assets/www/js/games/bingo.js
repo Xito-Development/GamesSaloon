@@ -1,0 +1,99 @@
+const Bingo = {
+  id: 'bingo', name: 'Bingo', hasBot: true,
+  mount(root, opts) {
+    const diff = opts.diff || 'medio';
+    const speed = { facil: 3200, medio: 2200, dificil: 1300 }[diff];
+    const botAuto = { facil: .55, medio: .85, dificil: 1 }[diff];
+    const bots = (opts.players || 4) - 1;
+    let drawn = [], bag = [], mine, boards = [], running = false, tid;
+
+    root.innerHTML = `
+      <div class="board-head">
+        <button class="back" id="bk">← Salir</button>
+        <div class="hud">Última bola<br><b id="last" style="font-size:22px;color:var(--primary)">—</b></div>
+      </div>
+      <div class="card" style="margin-top:0"><div id="rivals" style="display:flex;gap:8px;flex-wrap:wrap"></div></div>
+      <div class="felt" style="margin-top:14px"><div id="mycard"></div></div>
+      <div class="row"><button class="btn" id="go">Empezar</button><button class="btn ghost" id="linebtn">¡Línea!</button></div>
+      <div class="row"><button class="btn sec" id="bingobtn">¡BINGO!</button></div>
+      <div class="card"><p style="margin:0">Bolas cantadas: <span id="hist"></span></p></div>`;
+
+    root.querySelector('#bk').onclick = () => { clearInterval(tid); App.go('hub'); };
+    App.onLeave = () => clearInterval(tid);
+
+    function makeBoard() {
+      // cartón 3x9 estilo español (15 números)
+      const grid = Array.from({ length: 3 }, () => Array(9).fill(null));
+      const cols = Array.from({ length: 9 }, (_, c) => Cards.shuffle(
+        Array.from({ length: c === 8 ? 11 : 10 }, (_, i) => c * 10 + i + (c === 0 ? 1 : 0))));
+      for (let r = 0; r < 3; r++) {
+        const pick = Cards.shuffle([...Array(9).keys()]).slice(0, 5);
+        pick.forEach(c => grid[r][c] = cols[c].pop());
+      }
+      return { grid, marks: new Set(), lines: 0, bingo: false };
+    }
+    function reset() {
+      bag = Cards.shuffle(Array.from({ length: 90 }, (_, i) => i + 1));
+      drawn = []; mine = makeBoard();
+      boards = Array.from({ length: bots }, makeBoard);
+      running = false; renderAll();
+    }
+    function renderAll() { renderMine(); renderRivals(); root.querySelector('#hist').textContent = drawn.join(' · ') || '—'; }
+
+    function renderMine() {
+      const t = root.querySelector('#mycard');
+      t.innerHTML = '';
+      const g = document.createElement('div');
+      g.style.cssText = 'display:grid;grid-template-columns:repeat(9,1fr);gap:4px';
+      mine.grid.forEach((row, r) => row.forEach((n, c) => {
+        const d = document.createElement('div');
+        const has = n !== null, ok = has && mine.marks.has(n);
+        d.textContent = has ? n : '';
+        d.style.cssText = `aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-weight:700;font-size:14px;
+          background:${has ? (ok ? 'var(--primary)' : '#fdf6e6') : 'rgba(255,255,255,.06)'};color:${ok ? 'var(--on-primary)' : '#222'};
+          transition:transform .25s var(--ease),background .3s;${ok ? 'transform:scale(1.06)' : ''}`;
+        if (has) d.onclick = () => {
+          if (drawn.includes(n) && !mine.marks.has(n)) { mine.marks.add(n); Audio2.sfx('chip'); renderMine(); }
+        };
+        g.appendChild(d);
+      }));
+      t.appendChild(g);
+    }
+    function renderRivals() {
+      const r = root.querySelector('#rivals');
+      r.innerHTML = boards.map((b, i) =>
+        `<div style="background:var(--surf2);border-radius:12px;padding:8px 12px;font-size:12px">
+          🤖 Bot ${i + 1}<br><b>${b.marks.size}</b>/15 ${b.lines ? '· línea' : ''}</div>`).join('');
+    }
+    function draw() {
+      if (!bag.length) return stop('Se acabaron las bolas');
+      const n = bag.pop(); drawn.push(n);
+      root.querySelector('#last').textContent = n;
+      Audio2.sfx('chip');
+      boards.forEach((b, i) => {
+        if (b.grid.flat().includes(n) && Math.random() < botAuto) b.marks.add(n);
+        const line = b.grid.some(row => row.filter(x => x !== null).every(x => b.marks.has(x)));
+        if (line && !b.lines) { b.lines = 1; App.toast(`Bot ${i + 1} canta LÍNEA`); }
+        if (b.marks.size === 15) { stop(`Bot ${i + 1} ha cantado BINGO 😖`); App.record('bingo', 'loss'); }
+      });
+      renderAll();
+    }
+    function stop(msg) { running = false; clearInterval(tid); root.querySelector('#go').textContent = 'Empezar'; if (msg) App.toast(msg); }
+
+    root.querySelector('#go').onclick = e => {
+      if (running) { stop(); return; }
+      if (!bag.length) reset();
+      running = true; e.target.textContent = 'Pausar'; draw();
+      tid = setInterval(draw, speed);
+    };
+    root.querySelector('#linebtn').onclick = () => {
+      const line = mine.grid.some(row => row.filter(x => x !== null).every(x => mine.marks.has(x)));
+      if (line) { Audio2.sfx('win'); App.toast('¡Línea cantada! Sigue a por el bingo'); } else { Audio2.sfx('bad'); App.toast('Aún no tienes línea completa'); }
+    };
+    root.querySelector('#bingobtn').onclick = () => {
+      if (mine.marks.size === 15) { Audio2.sfx('win'); stop('¡BINGO! Has ganado 🎉'); App.record('bingo', 'win'); }
+      else { Audio2.sfx('bad'); App.toast('Te faltan ' + (15 - mine.marks.size) + ' números'); }
+    };
+    reset();
+  }
+};

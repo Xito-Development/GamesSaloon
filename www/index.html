@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>GamesSaloon · Xito Development</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="dark">
+
+<div id="splash">
+  <div class="splash-logo">
+    <span class="suit s1">♠</span><span class="suit s2">♥</span><span class="suit s3">♣</span><span class="suit s4">♦</span>
+  </div>
+  <h1 class="splash-title">GAMES<br><span style="color:#f0b429">SALOON</span></h1>
+  <p class="splash-sub">La mesa siempre está puesta</p>
+</div>
+
+<header id="topbar">
+  <button class="icon-btn" id="menuBtn" aria-label="Menú">
+    <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h13"/></svg>
+  </button>
+  <div class="brand">GAMESSALOON</div>
+  <div class="top-actions">
+    <button class="icon-btn" id="musicBtn" aria-label="Música">
+      <svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+    </button>
+    <button class="icon-btn" id="themeBtn" aria-label="Tema">
+      <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+    </button>
+  </div>
+</header>
+
+<nav id="drawer">
+  <div class="drawer-head">
+    <div class="avatar" id="avatarInit">?</div>
+    <div>
+      <div class="drawer-name" id="drawerName">Invitado</div>
+      <div class="drawer-sub" id="drawerStats">0 partidas jugadas</div>
+    </div>
+  </div>
+  <button class="drawer-item" data-nav="hub"><span>🎲</span> Juegos</button>
+  <button class="drawer-item" data-nav="online"><span>🌐</span> Jugar online</button>
+  <button class="drawer-item" data-nav="stats"><span>📊</span> Estadísticas</button>
+  <button class="drawer-item" data-nav="ranking"><span>🏆</span> Ranking global</button>
+  <button class="drawer-item" data-nav="settings"><span>⚙️</span> Ajustes</button>
+  <div class="drawer-foot">Xito Development</div>
+</nav>
+<div id="scrim"></div>
+
+<main id="view"></main>
+
+<div id="toast"></div>
+
+<script src="js/audio.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/net.js"></script>
+<script src="js/games/solitario.js"></script>
+<script src="js/games/bingo.js"></script>
+<script src="js/games/ajedrez.js"></script>
+<script src="js/games/brisca.js"></script>
+<script src="js/games/parchis.js"></script>
+<script src="js/games/cinquillo.js"></script>
+<script src="js/games/chinchon.js"></script>
+<script src="js/games/damas.js"></script>
+<script src="js/games/online.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
