@@ -11,7 +11,7 @@ const Parchis = {
     root.innerHTML = `
       <div class="board-head"><button class="back" id="bk">← Salir</button>
         <div class="hud" id="hud">Tu turno</div></div>
-      <div class="felt" style="padding:8px"><div id="bd" style="position:relative;width:100%;aspect-ratio:1"></div></div>
+      <div class="board-wrap"><div class="felt" style="padding:8px"><div id="bd" style="position:relative;width:100%;aspect-ratio:1"></div></div></div>
       <div class="card" style="display:flex;align-items:center;gap:14px">
         <div id="dado" style="width:62px;height:62px;border-radius:16px;background:#fff;color:#111;display:grid;place-items:center;
           font-size:30px;font-weight:800;box-shadow:var(--shadow);transition:transform .3s var(--ease)">–</div>
@@ -136,7 +136,7 @@ const Parchis = {
           if (adv === -1) { x = home[0] + (i % 2) * 1.3; y = home[1] + Math.floor(i / 2) * 1.3; }
           else {[x, y] = pos(k, adv); x += (i % 2) * .22; y += Math.floor(i / 2) * .22; }
           const p = put(x, y, `width:${u * .82}px;height:${u * .82}px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff9,${COL[k]});
-            box-shadow:0 3px 6px rgba(0,0,0,.5);border:1px solid rgba(0,0,0,.3);transition:left .35s var(--ease),top .35s var(--ease);z-index:5`);
+            box-shadow:0 3px 6px rgba(0,0,0,.5);border:1px solid rgba(0,0,0,.3);transition:left .5s cubic-bezier(.22,1,.28,1),top .5s cubic-bezier(.22,1,.28,1);z-index:5`);
           if (k === 0 && turn === 0 && phase === 'mover') {
             const mv = legal(0, dice).find(m => m.i === i);
             if (mv) { p.style.boxShadow = '0 0 0 3px var(--primary),0 3px 6px rgba(0,0,0,.5)'; p.onclick = () => { Audio2.sfx('chip'); move(0, mv); }; }

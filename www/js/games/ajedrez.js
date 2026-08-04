@@ -10,14 +10,14 @@ const Ajedrez = {
       b: new Array(64).fill(5), r: new Array(64).fill(0), q: new Array(64).fill(0),
       k: [-30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -20, -30, -30, -40, -40, -30, -30, -20, -10, -20, -20, -20, -20, -20, -20, -10, 20, 20, 0, 0, 0, 0, 20, 20, 20, 30, 10, 0, 0, 10, 30, 20]
     };
-    let b, turn, sel, hist, over;
+    let b, turn, sel, hist, over, lastTo = null;
 
     root.innerHTML = `
       <div class="board-head">
         <button class="back" id="bk">← Salir</button>
         <div class="hud" id="status">Juegas con blancas</div>
       </div>
-      <div id="bd" style="border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);border:6px solid #4a3524;background:#4a3524"></div>
+      <div class="board-wrap"><div id="bd" style="border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);border:6px solid #4a3524;background:#4a3524"></div></div>
       <div class="row"><button class="btn ghost" id="undo">Deshacer</button><button class="btn" id="nw">Nueva</button></div>`;
     root.querySelector('#bk').onclick = () => App.go('hub');
     root.querySelector('#nw').onclick = init;
@@ -115,6 +115,7 @@ const Ajedrez = {
         const v = search(apply(b, m), 'w', depth - 1, -1e9, 1e9);
         if (v < bv) { bv = v; best = m; }
       });
+      grab(best[0]); lastTo = best[1];
       hist.push(b.slice());
       b = apply(b, best); turn = 'w'; Audio2.sfx('card'); render(); end();
     }
@@ -129,6 +130,11 @@ const Ajedrez = {
       } else if (inCheck(b, turn)) root.querySelector('#status').textContent = 'Jaque';
       else root.querySelector('#status').textContent = turn === 'w' ? 'Tu turno' : 'Piensa el bot…';
     }
+    let pendingFrom = null;
+    function grab(i) {
+      const el = root.querySelector('#bd .piece[data-sq="' + i + '"]');
+      pendingFrom = el ? el.getBoundingClientRect() : null;
+    }
     function render() {
       const bd = root.querySelector('#bd');
       bd.innerHTML = '';
@@ -141,13 +147,19 @@ const Ajedrez = {
         d.style.cssText = `aspect-ratio:1;display:grid;place-items:center;font-size:min(8vw,34px);position:relative;
           background:${dark ? '#b58863' : '#f0d9b5'};color:${isW(b[i]) ? '#fff' : '#111'};
           text-shadow:${isW(b[i]) ? '0 1px 2px rgba(0,0,0,.6)' : 'none'};transition:background .2s`;
-        if (b[i] !== '.') d.textContent = GLYPH[b[i].toLowerCase() === b[i] ? b[i] : b[i]] || '';
-        if (b[i] !== '.') d.textContent = GLYPH[b[i]] || GLYPH[b[i].toLowerCase()];
+        if (b[i] !== '.') {
+          const sp = document.createElement('span');
+          sp.className = 'piece';
+          sp.dataset.sq = i;
+          sp.textContent = GLYPH[b[i]] || GLYPH[b[i].toLowerCase()];
+          d.appendChild(sp);
+        }
         if (sel === i) d.style.background = '#f6d365';
         if (legal.includes(i)) d.innerHTML += `<span style="position:absolute;width:26%;height:26%;border-radius:50%;background:rgba(20,120,60,.6)"></span>`;
         d.onclick = () => {
           if (over || turn !== 'w') return;
           if (sel !== null && legal.includes(i)) {
+            grab(sel); lastTo = i;
             hist.push(b.slice()); b = apply(b, [sel, i]); sel = null; turn = 'b';
             Audio2.sfx('card'); render(); end();
             if (!over) App.timer(botMove, 220);
@@ -156,6 +168,10 @@ const Ajedrez = {
         g.appendChild(d);
       }
       bd.appendChild(g);
+      if (pendingFrom && lastTo !== null) {
+        Anim.slideFrom(bd.querySelector('.piece[data-sq="' + lastTo + '"]'), pendingFrom);
+        pendingFrom = null; lastTo = null;
+      }
     }
     init();
   }

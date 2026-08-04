@@ -92,17 +92,18 @@ const Cinquillo = {
           const s = document.createElement('div');
           s.style.cssText = 'height:46px;flex:1;border:2px dashed rgba(255,255,255,.2);border-radius:8px;display:grid;place-items:center;font-size:12px;color:#ffffff88';
           s.textContent = 'empieza el 5'; line.appendChild(s);
-        } else row.forEach(c => { const e = Cards.el(c, { w: 32 }); e.style.height = '46px'; line.appendChild(e); });
+        } else row.forEach((c, k) => { const e = Cards.el(c, { w: 38 }); e.style.height = '54px'; if (k === row.length - 1 || k === 0) e.classList.add('pop-in'); line.appendChild(e); });
         m.appendChild(line);
       });
-      const h = $('#mano'); h.innerHTML = '';
+      const h = $('#mano'); const first = !h.dataset.done; h.innerHTML = '';
       (hands[0] || []).forEach((c, i) => {
-        const e = Cards.el(c, { w: 46 });
+        const e = Cards.el(c, { w: 54 });
         const ok = turn === 0 && !over && playable(c);
         if (ok) { e.style.boxShadow = '0 0 0 3px var(--primary),0 4px 10px rgba(0,0,0,.5)'; e.onclick = () => play(0, i); }
         else e.style.opacity = turn === 0 ? .55 : 1;
         h.appendChild(e);
       });
+      if (first) { h.dataset.done = '1'; Anim.deal([...h.children], 22); }
       $('#paso').style.opacity = turn === 0 && !over ? 1 : .45;
     }
     start();

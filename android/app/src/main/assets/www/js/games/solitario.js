@@ -9,7 +9,7 @@ const Solitario = {
         <button class="back" id="bk">← Salir</button>
         <div class="hud"><b id="mv">0</b> movimientos<br><span id="tm">0:00</span></div>
       </div>
-      <div class="felt" id="felt"></div>
+      <div class="board-wrap"><div class="felt" id="felt"></div></div>
       <div class="row"><button class="btn ghost" id="nw">Nueva partida</button></div>`;
     root.querySelector('#bk').onclick = () => { clearInterval(timer); App.go('hub'); };
     root.querySelector('#nw').onclick = () => deal();
@@ -32,7 +32,7 @@ const Solitario = {
     const canFound = (c, f) => f.length ? (f[0].si === c.si && val(f[f.length - 1]) === val(c) - 1) : c.ri === 0;
 
     function render() {
-      const w = Math.min(52, Math.floor((felt.clientWidth - 60) / 7));
+      const w = Math.max(38, Math.min(84, Math.floor((felt.clientWidth - 52) / 7.6)));
       felt.innerHTML = '';
       const top = document.createElement('div');
       top.style.cssText = 'display:flex;gap:6px;margin-bottom:14px;align-items:flex-start';

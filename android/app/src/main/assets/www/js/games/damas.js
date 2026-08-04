@@ -8,7 +8,7 @@ const Damas = {
     root.innerHTML = `
       <div class="board-head"><button class="back" id="bk">← Salir</button>
         <div class="hud" id="hud">Juegas con blancas</div></div>
-      <div id="bd" style="border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);border:6px solid #4a3524"></div>
+      <div class="board-wrap"><div id="bd" style="border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);border:6px solid #4a3524"></div></div>
       <div class="row"><button class="btn" id="nw">Nueva partida</button></div>`;
     const $ = s => root.querySelector(s);
     $('#bk').onclick = () => App.go('hub');
@@ -112,6 +112,7 @@ const Damas = {
       if (!ms.length) return status();
       let best = null, bv = 1e9;
       Cards.shuffle(ms).forEach(m => { const v = search(applyMove(b, m), 'b', depth - 1, -1e9, 1e9); if (v < bv) { bv = v; best = m; } });
+      grab(best.from); lastTo = best.seq[best.seq.length - 1].to;
       b = applyMove(b, best); turn = 'b'; Audio2.sfx(best.seq[0].vic !== undefined ? 'chip' : 'card');
       render(); status();
     }
@@ -124,6 +125,11 @@ const Damas = {
         App.toast($('#hud').textContent); Audio2.sfx(win ? 'win' : 'bad');
         App.record('damas', win ? 'win' : 'loss');
       } else $('#hud').textContent = turn === 'b' ? (ms[0].seq[0].vic !== undefined ? 'Tu turno — hay captura obligatoria' : 'Tu turno') : 'Piensa el bot…';
+    }
+    let pendingFrom = null, lastTo = null;
+    function grab(i) {
+      const el = $('#bd .piece[data-sq="' + i + '"]');
+      pendingFrom = el ? el.getBoundingClientRect() : null;
     }
     function render() {
       const bd = $('#bd'); bd.innerHTML = '';
@@ -138,6 +144,7 @@ const Damas = {
         if (c !== '.') {
           const p = document.createElement('div');
           const white = c.toLowerCase() === 'b';
+          p.className = 'piece'; p.dataset.sq = i;
           p.style.cssText = `width:74%;height:74%;border-radius:50%;
             background:radial-gradient(circle at 32% 28%,${white ? '#fff,#cfc6b4' : '#5a5a5a,#161616'});
             box-shadow:0 3px 6px rgba(0,0,0,.55);display:grid;place-items:center;color:${white ? '#a07800' : '#f0b429'};font-size:16px`;
@@ -150,6 +157,7 @@ const Damas = {
           if (over || turn !== 'b') return;
           const mv = sel !== null ? ms.find(m => m.from === sel && m.seq[m.seq.length - 1].to === i) : null;
           if (mv) {
+            grab(mv.from); lastTo = mv.seq[mv.seq.length - 1].to;
             b = applyMove(b, mv); sel = null; turn = 'n';
             Audio2.sfx(mv.seq[0].vic !== undefined ? 'chip' : 'card'); render(); status();
             if (!over) App.timer(botMove, 300);
@@ -158,6 +166,10 @@ const Damas = {
         g.appendChild(d);
       }
       bd.appendChild(g);
+      if (pendingFrom && lastTo !== null) {
+        Anim.slideFrom(bd.querySelector('.piece[data-sq="' + lastTo + '"]'), pendingFrom);
+        pendingFrom = null; lastTo = null;
+      }
     }
     init();
   }

@@ -49,9 +49,9 @@ const Bingo = {
         const d = document.createElement('div');
         const has = n !== null, ok = has && mine.marks.has(n);
         d.textContent = has ? n : '';
-        d.style.cssText = `aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-weight:700;font-size:14px;
+        d.style.cssText = `aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-weight:700;font-size:clamp(13px,3.4vw,20px);
           background:${has ? (ok ? 'var(--primary)' : '#fdf6e6') : 'rgba(255,255,255,.06)'};color:${ok ? 'var(--on-primary)' : '#222'};
-          transition:transform .25s var(--ease),background .3s;${ok ? 'transform:scale(1.06)' : ''}`;
+          transition:transform .35s cubic-bezier(.22,1,.28,1),background .35s var(--ease);${ok ? 'transform:scale(1.08)' : ''}`;
         if (has) d.onclick = () => {
           if (drawn.includes(n) && !mine.marks.has(n)) { mine.marks.add(n); Audio2.sfx('chip'); renderMine(); }
         };

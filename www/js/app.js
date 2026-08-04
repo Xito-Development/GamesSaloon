@@ -331,7 +331,7 @@ const App = {
           <button data-t="light" class="${this.state.theme === 'light' ? 'on' : ''}">Claro</button></div>
         <div class="row"><button class="btn ghost" id="reset">Borrar estadísticas</button></div>
       </div>
-      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v1.0</p></div>`;
+      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v1.1</p></div>`;
     v.querySelector('#bk').onclick = () => this.go('hub');
     const nm = v.querySelector('#nm');
     nm.oninput = () => { this.state.name = nm.value; this.save(); this.refreshDrawer(); };

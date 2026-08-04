@@ -4,7 +4,7 @@ const Brisca = {
     const diff = opts.diff || 'medio';
     const PTS = { '1': 11, '3': 10, 'R': 4, 'C': 3, 'S': 2 };
     const POW = { '1': 10, '3': 9, 'R': 8, 'C': 7, 'S': 6, '7': 5, '6': 4, '5': 3, '4': 2, '2': 1 };
-    let deck, triunfo, me = [], bot = [], mesa = [], turno = 'me', pMe = 0, pBot = 0, lock = false;
+    let deck, triunfo, me = [], bot = [], mesa = [], turno = 'me', pMe = 0, pBot = 0, lock = false, dealt = -1;
 
     root.innerHTML = `
       <div class="board-head">
@@ -24,6 +24,7 @@ const Brisca = {
     function start() {
       deck = Cards.shuffle(Cards.spanishDeck());
       triunfo = deck[0]; me = []; bot = []; mesa = []; pMe = pBot = 0; turno = 'me'; lock = false;
+      dealt = -1;
       for (let i = 0; i < 3; i++) { me.push(deck.pop()); bot.push(deck.pop()); }
       render(); msg('Empiezas tú. El triunfo es ' + triunfo.palo + ' ' + triunfo.s);
     }
@@ -40,23 +41,24 @@ const Brisca = {
       root.querySelector('#pb').textContent = pBot;
       root.querySelector('#rest').textContent = deck.length ? deck.length + ' cartas · triunfo ' + triunfo.s : 'últimas bazas';
       const br = root.querySelector('#botrow'); br.innerHTML = '';
-      bot.forEach(() => br.appendChild(Cards.el(null, { w: 44, faceDown: true })));
+      bot.forEach(() => br.appendChild(Cards.el(null, { w: 52, faceDown: true })));
       const mz = root.querySelector('#mesa'); mz.innerHTML = '';
       const pile = document.createElement('div'); pile.style.cssText = 'position:relative;margin-right:20px';
       if (deck.length) {
-        const t = Cards.el(triunfo, { w: 52 }); t.style.transform = 'rotate(90deg) translateX(16px)';
+        const t = Cards.el(triunfo, { w: 60 }); t.style.transform = 'rotate(90deg) translateX(16px)';
         pile.appendChild(t);
-        const d = Cards.el(null, { w: 52, faceDown: true }); d.style.cssText += 'position:absolute;top:0;left:26px';
+        const d = Cards.el(null, { w: 60, faceDown: true }); d.style.cssText += 'position:absolute;top:0;left:30px';
         pile.appendChild(d);
       }
       mz.appendChild(pile);
-      mesa.forEach(c => { const e = Cards.el(c, { w: 62 }); e.style.animation = 'rise .3s var(--ease)'; mz.appendChild(e); });
+      mesa.forEach(c => { const e = Cards.el(c, { w: 74 }); e.classList.add('deal'); mz.appendChild(e); });
       const mn = root.querySelector('#mano'); mn.innerHTML = '';
       me.forEach((c, i) => {
-        const e = Cards.el(c, { w: 66 });
+        const e = Cards.el(c, { w: 78 });
         e.onclick = () => play(i);
         mn.appendChild(e);
       });
+      if (dealt !== me.length) { dealt = me.length; Anim.deal([...mn.children], 70); }
     }
     function play(i) {
       if (lock || turno !== 'me') return;

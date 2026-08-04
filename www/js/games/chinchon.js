@@ -127,17 +127,18 @@ const Chinchon = {
       $('#sm').textContent = score.me; $('#sb').textContent = score.bot;
       $('#rest').textContent = deck.length + ' en el mazo';
       const br = $('#botrow'); br.innerHTML = '';
-      bot.forEach(c => br.appendChild(Cards.el(c, { w: 34, faceDown: !over })));
+      bot.forEach(c => br.appendChild(Cards.el(c, { w: 42, faceDown: !over })));
       const ce = $('#centro'); ce.innerHTML = '';
-      const mz = Cards.el(null, { w: 58, faceDown: true }); mz.onclick = () => draw('deck'); ce.appendChild(mz);
-      const pl = pile.length ? Cards.el(pile[pile.length - 1], { w: 58 }) : document.createElement('div');
+      const mz = Cards.el(null, { w: 68, faceDown: true }); mz.onclick = () => draw('deck'); ce.appendChild(mz);
+      const pl = pile.length ? Cards.el(pile[pile.length - 1], { w: 68 }) : document.createElement('div');
       pl.onclick = () => draw('pile'); ce.appendChild(pl);
-      const h = $('#mano'); h.innerHTML = '';
+      const h = $('#mano'); const first = !h.dataset.done; h.innerHTML = '';
       me.forEach((c, i) => {
-        const e = Cards.el(c, { w: 48 });
+        const e = Cards.el(c, { w: 56 });
         if (turn === 0 && drawn && !over) { e.onclick = () => discard(i); e.style.cursor = 'pointer'; }
         h.appendChild(e);
       });
+      if (first) { h.dataset.done = '1'; Anim.deal([...h.children], 60); }
       $('#dw').textContent = over ? '' : 'Puntos muertos ahora: ' + best(me);
       $('#cerrar').style.opacity = turn === 0 && drawn && !over ? 1 : .45;
     }

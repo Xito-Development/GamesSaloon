@@ -249,12 +249,12 @@ const CinquilloOnline = {
         const s = document.createElement('div');
         s.style.cssText = 'height:46px;flex:1;border:2px dashed rgba(255,255,255,.2);border-radius:8px;display:grid;place-items:center;font-size:12px;color:#ffffff88';
         s.textContent = 'empieza el 5'; line.appendChild(s);
-      } else row.forEach(c => { const e = Cards.el(c, { w: 32 }); e.style.height = '46px'; line.appendChild(e); });
+      } else row.forEach(c => { const e = Cards.el(c, { w: 38 }); e.style.height = '54px'; line.appendChild(e); });
       mz.appendChild(line);
     });
     const h = root.querySelector('#cmano'); h.innerHTML = '';
     me.forEach((c, i) => {
-      const e = Cards.el(c, { w: 46 });
+      const e = Cards.el(c, { w: 54 });
       const ok = mine && !st.over && this.playable(c, st.mesa);
       if (ok) { e.style.boxShadow = '0 0 0 3px var(--primary),0 4px 10px rgba(0,0,0,.5)'; e.onclick = () => this.play(st, i, players); }
       else e.style.opacity = mine ? .55 : 1;
@@ -350,10 +350,10 @@ const BriscaOnline = {
       const d = Cards.el(null, { w: 50, faceDown: true }); d.style.cssText += 'position:absolute;top:0;left:25px'; wrap.appendChild(d);
       mz.appendChild(wrap);
     }
-    st.mesa.forEach(m => { const e = Cards.el(m.card, { w: 62 }); e.style.animation = 'rise .3s var(--ease)'; mz.appendChild(e); });
+    st.mesa.forEach(m => { const e = Cards.el(m.card, { w: 74 }); e.classList.add('deal'); mz.appendChild(e); });
     const h = root.querySelector('#bmano'); h.innerHTML = '';
     (st.hands[Net.me.id] || []).forEach((c, i) => {
-      const e = Cards.el(c, { w: 64 });
+      const e = Cards.el(c, { w: 76 });
       if (mine && !st.over) { e.style.boxShadow = '0 0 0 3px var(--primary),0 4px 10px rgba(0,0,0,.5)'; e.onclick = () => this.play(st, i); }
       else e.style.opacity = .7;
       h.appendChild(e);
@@ -398,7 +398,7 @@ const ParchisOnline = {
       root.querySelector('#start').style.display = 'none';
       root.querySelector('#table').innerHTML = `
         <div class="card" id="phud" style="font-size:13px"></div>
-        <div class="felt" style="padding:8px;margin-top:12px"><div id="pbd" style="position:relative;width:100%;aspect-ratio:1"></div></div>
+        <div class="board-wrap"><div class="felt" style="padding:8px;margin-top:12px"><div id="pbd" style="position:relative;width:100%;aspect-ratio:1"></div></div></div>
         <div class="card" style="display:flex;align-items:center;gap:14px">
           <div id="pdado" style="width:58px;height:58px;border-radius:16px;background:#fff;color:#111;display:grid;place-items:center;font-size:28px;font-weight:800;box-shadow:var(--shadow)">–</div>
           <p id="pmsg" style="margin:0;flex:1"></p></div>
@@ -467,7 +467,7 @@ const ParchisOnline = {
         if (adv === -1) { x = homes[k][0] + (i % 2) * 1.3; y = homes[k][1] + Math.floor(i / 2) * 1.3; }
         else { const p = this.pos(k, adv); x = p[0] + (i % 2) * .22; y = p[1] + Math.floor(i / 2) * .22; }
         const el = put(x, y, `width:${u * .82}px;height:${u * .82}px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff9,${this.COL[k]});
-          box-shadow:0 3px 6px rgba(0,0,0,.5);transition:left .35s var(--ease),top .35s var(--ease);z-index:5`);
+          box-shadow:0 3px 6px rgba(0,0,0,.5);transition:left .5s cubic-bezier(.22,1,.28,1),top .5s cubic-bezier(.22,1,.28,1);z-index:5`);
         if (id === Net.me.id && mine && st.phase === 'mover') {
           const mv = this.legal(st, id, st.dice).find(m => m.i === i);
           if (mv) { el.style.boxShadow = '0 0 0 3px var(--primary),0 3px 6px rgba(0,0,0,.5)'; el.onclick = () => this.move(st, mv); }
