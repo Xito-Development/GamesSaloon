@@ -13,7 +13,7 @@ const Cinquillo = {
     root.innerHTML = `
       <div class="board-head"><button class="back" id="bk">← Salir</button>
         <div class="hud" id="hud"></div></div>
-      <div class="felt"><div id="mesa" style="display:grid;gap:8px"></div></div>
+      <div class="board-wrap"><div class="felt"><div id="mesa" style="display:grid;gap:8px"></div></div></div>
       <div class="card"><p id="msg" style="margin:0"></p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px" id="mano"></div>
       <div class="row"><button class="btn ghost" id="paso">Paso</button><button class="btn" id="nw">Nueva partida</button></div>`;

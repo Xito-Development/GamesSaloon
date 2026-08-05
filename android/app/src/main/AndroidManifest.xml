@@ -10,7 +10,7 @@
         android:theme="@style/Theme.GamesSaloon">
         <activity android:name=".MainActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullUser"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

@@ -13,7 +13,7 @@ const Bingo = {
         <div class="hud">Última bola<br><b id="last" style="font-size:22px;color:var(--primary)">—</b></div>
       </div>
       <div class="card" style="margin-top:0"><div id="rivals" style="display:flex;gap:8px;flex-wrap:wrap"></div></div>
-      <div class="felt" style="margin-top:14px"><div id="mycard"></div></div>
+      <div class="board-wrap"><div class="felt" style="margin-top:14px"><div id="mycard"></div></div></div>
       <div class="row"><button class="btn" id="go">Empezar</button><button class="btn ghost" id="linebtn">¡Línea!</button></div>
       <div class="row"><button class="btn sec" id="bingobtn">¡BINGO!</button></div>
       <div class="card"><p style="margin:0">Bolas cantadas: <span id="hist"></span></p></div>`;

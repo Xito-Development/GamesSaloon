@@ -1,8 +1,10 @@
 /* Música relajante generativa (sin archivos, funciona offline) */
 const Audio2 = (() => {
   let ctx, master, on = false, timer = null;
-  const SCALE = [0, 3, 5, 7, 10, 12, 15, 19]; // pentatónica menor, sonido cálido
-  const ROOT = 220;
+  const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21]; // pentatónica mayor: alegre y luminosa
+  const ROOT = 349.23; // fa4, registro brillante
+  const BASS = [0, -5, -3, -7];   // vueltas de acordes sencillas
+  let bar = 0;
 
   function init() {
     if (ctx) return;
@@ -10,8 +12,8 @@ const Audio2 = (() => {
     master = ctx.createGain();
     master.gain.value = 0.0;
     const rev = ctx.createConvolver();
-    rev.buffer = impulse(3.4, 2.2);
-    const wet = ctx.createGain(); wet.gain.value = 0.55;
+    rev.buffer = impulse(1.6, 3);
+    const wet = ctx.createGain(); wet.gain.value = 0.3;
     master.connect(ctx.destination);
     master.connect(wet); wet.connect(rev); rev.connect(ctx.destination);
   }
@@ -25,29 +27,44 @@ const Audio2 = (() => {
     return b;
   }
 
-  function note(freq, dur, vol) {
+  // pulso tipo marimba/campanita: ataque rápido y cola corta = alegre
+  function note(freq, dur, vol, type) {
     const t = ctx.currentTime;
     const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
-    o.type = 'sine'; o2.type = 'triangle';
-    o.frequency.value = freq; o2.frequency.value = freq * 2.005;
-    f.type = 'lowpass'; f.frequency.value = 1300;
+    o.type = type || 'triangle'; o2.type = 'sine';
+    o.frequency.value = freq; o2.frequency.value = freq * 2;
+    f.type = 'lowpass'; f.frequency.setValueAtTime(3200, t);
+    f.frequency.exponentialRampToValueAtTime(900, t + dur * 0.7);
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vol, t + 0.6);
+    g.gain.linearRampToValueAtTime(vol, t + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(f); o2.connect(f); f.connect(g); g.connect(master);
-    o.start(t); o2.start(t); o.stop(t + dur); o2.stop(t + dur);
+    o.start(t); o2.start(t); o.stop(t + dur + .05); o2.stop(t + dur + .05);
+  }
+  function bass(freq, dur, vol) {
+    const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .05);
   }
 
   function step() {
     if (!on) return;
-    const deg = SCALE[Math.floor(Math.random() * SCALE.length)];
-    note(ROOT * Math.pow(2, deg / 12), 5 + Math.random() * 4, 0.14);
-    if (Math.random() < 0.4) {
-      const d2 = SCALE[Math.floor(Math.random() * SCALE.length)];
-      setTimeout(() => on && note(ROOT * 2 * Math.pow(2, d2 / 12), 4, 0.07), 900);
+    const beat = 460; // ~130 bpm, animado pero suave
+    const root = BASS[bar % BASS.length];
+    // melodía saltarina de 2-3 notas
+    const n = 2 + (Math.random() < .5 ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      const deg = SCALE[Math.floor(Math.random() * SCALE.length)] + root;
+      setTimeout(() => on && note(ROOT * Math.pow(2, deg / 12), 0.7 + Math.random() * .4, 0.13), i * beat / 2);
     }
-    if (Math.random() < 0.25) note(ROOT / 2, 9, 0.1); // bajo cálido
-    timer = setTimeout(step, 1800 + Math.random() * 2200);
+    // bajo redondo al principio del compás
+    bass(ROOT / 4 * Math.pow(2, root / 12), 1.1, 0.11);
+    // chispita aguda de vez en cuando
+    if (Math.random() < .35) setTimeout(() => on && note(ROOT * 4 * Math.pow(2, SCALE[Math.floor(Math.random() * 4)] / 12), .35, .05), beat);
+    bar++;
+    timer = setTimeout(step, beat * 2);
   }
 
   return {
@@ -55,7 +72,7 @@ const Audio2 = (() => {
     start() {
       init(); ctx.resume(); on = true;
       master.gain.cancelScheduledValues(ctx.currentTime);
-      master.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 2.5);
+      master.gain.linearRampToValueAtTime(0.42, ctx.currentTime + 1.5);
       step();
     },
     stop() {

@@ -146,7 +146,13 @@ const Parchis = {
       $('#tirar').style.opacity = (turn === 0 && phase === 'tirar') ? 1 : .45;
     }
     init();
-    window.addEventListener('resize', render);
+    const onResize = () => { if (root.isConnected) render(); };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    App.onLeave = () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
     App.timer(render, 60);
   }
 };

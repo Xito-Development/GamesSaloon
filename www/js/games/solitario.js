@@ -32,12 +32,16 @@ const Solitario = {
     const canFound = (c, f) => f.length ? (f[0].si === c.si && val(f[f.length - 1]) === val(c) - 1) : c.ri === 0;
 
     function render() {
-      const w = Math.max(38, Math.min(84, Math.floor((felt.clientWidth - 52) / 7.6)));
+      const avail = (felt.clientWidth || 320) - 16;
+      const gap = 6;
+      const w = Math.max(30, Math.min(78, Math.floor((avail - gap * 6) / 7)));
+      const h = Math.round(w * 1.45);
+      const overlapUp = Math.round(h * 0.36), overlapDown = Math.round(h * 0.16);
       felt.innerHTML = '';
       const top = document.createElement('div');
-      top.style.cssText = 'display:flex;gap:6px;margin-bottom:14px;align-items:flex-start';
+      top.style.cssText = `display:flex;gap:${gap}px;margin-bottom:14px;align-items:flex-start;flex-wrap:nowrap`;
       // stock
-      const st = document.createElement('div'); st.style.cssText = 'display:flex;gap:6px';
+      const st = document.createElement('div'); st.style.cssText = `display:flex;gap:${gap}px`;
       const sc = stock.length ? Cards.el(null, { w, faceDown: true }) : slot(w);
       sc.onclick = () => { Audio2.sfx('card'); if (stock.length) { const c = stock.pop(); c.up = 1; waste.push(c); } else { stock = waste.reverse().map(c => (c.up = 0, c)); waste = []; } sel = null; render(); };
       st.appendChild(sc);
@@ -46,7 +50,7 @@ const Solitario = {
       if (sel && sel.from === 'w') wc.classList.add('sel');
       st.appendChild(wc);
       top.appendChild(st);
-      const sp = document.createElement('div'); sp.style.flex = '1'; top.appendChild(sp);
+      const sp = document.createElement('div'); sp.style.cssText = 'flex:1;min-width:4px'; top.appendChild(sp);
       // foundations
       found.forEach((f, i) => {
         const e = f.length ? Cards.el(f[f.length - 1], { w }) : slot(w);
@@ -55,15 +59,16 @@ const Solitario = {
       });
       felt.appendChild(top);
       // tableau
-      const cols = document.createElement('div'); cols.style.cssText = 'display:flex;gap:6px;justify-content:center';
+      const cols = document.createElement('div'); cols.style.cssText = `display:flex;gap:${gap}px;justify-content:center;align-items:flex-start`;
       tab.forEach((p, i) => {
         const col = document.createElement('div');
-        col.style.cssText = 'position:relative;min-height:' + (w * 1.5) + 'px;width:' + w + 'px';
+        const colH = h + p.reduce((a, c, j) => a + (j ? (p[j - 1].up ? overlapUp : overlapDown) : 0), 0);
+        col.style.cssText = `position:relative;width:${w}px;height:${Math.max(h, colH)}px`;
         if (!p.length) { const s = slot(w); s.onclick = () => drop({ t: 't', i }); col.appendChild(s); }
         p.forEach((c, j) => {
           const e = Cards.el(c, { w, faceDown: !c.up });
-          e.style.cssText += `position:absolute;top:${j * (c.up ? 22 : 10)}px;left:0`;
-          e.style.top = p.slice(0, j).reduce((a, x) => a + (x.up ? 22 : 10), 0) + 'px';
+          e.style.cssText += 'position:absolute;left:0';
+          e.style.top = p.slice(0, j).reduce((a, x) => a + (x.up ? overlapUp : overlapDown), 0) + 'px';
           if (sel && sel.from === 't' && sel.i === i && sel.j <= j) e.classList.add('sel');
           e.onclick = () => {
             if (!c.up) { if (j === p.length - 1) { c.up = 1; Audio2.sfx('card'); render(); } return; }
@@ -79,7 +84,7 @@ const Solitario = {
     }
     function slot(w) {
       const d = document.createElement('div');
-      d.style.cssText = `width:${w}px;height:${Math.round(w * 1.45)}px;border:2px dashed rgba(255,255,255,.22);border-radius:8px`;
+      d.style.cssText = `width:${w}px;height:${Math.round(w * 1.45)}px;border:2px dashed rgba(255,255,255,.22);border-radius:8px;flex:0 0 auto`;
       return d;
     }
     function pick(s, c, e) { sel = s; Audio2.sfx('tick'); render(); }
@@ -98,6 +103,14 @@ const Solitario = {
       sel = null; render();
     }
     deal();
-    window.addEventListener('resize', render);
+    const onResize = () => { if (root.isConnected) render(); };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    const prevLeave = App.onLeave;
+    App.onLeave = () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+      if (prevLeave) prevLeave();
+    };
   }
 };

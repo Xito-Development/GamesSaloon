@@ -12,10 +12,10 @@ const Chinchon = {
     root.innerHTML = `
       <div class="board-head"><button class="back" id="bk">← Salir</button>
         <div class="hud">Tú <b id="sm">0</b> · Bot <b id="sb">0</b><br><span id="rest"></span></div></div>
-      <div class="felt">
+      <div class="board-wrap"><div class="felt">
         <div style="display:flex;justify-content:center;gap:10px;margin-bottom:10px" id="botrow"></div>
         <div style="display:flex;justify-content:center;gap:22px;align-items:center" id="centro"></div>
-      </div>
+      </div></div>
       <div class="card"><p id="msg" style="margin:0"></p><p id="dw" style="margin:6px 0 0;color:var(--primary)"></p></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:14px" id="mano"></div>
       <div class="row"><button class="btn ghost" id="cerrar">Cerrar</button><button class="btn" id="nw">Nueva ronda</button></div>`;

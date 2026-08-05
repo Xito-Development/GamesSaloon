@@ -11,11 +11,11 @@ const Brisca = {
         <button class="back" id="bk">← Salir</button>
         <div class="hud">Tú <b id="pm">0</b> · Bot <b id="pb">0</b><br><span id="rest"></span></div>
       </div>
-      <div class="felt">
+      <div class="board-wrap"><div class="felt">
         <div style="display:flex;align-items:center;gap:14px;justify-content:center;margin-bottom:12px" id="botrow"></div>
         <div style="display:flex;justify-content:center;gap:16px;min-height:110px;align-items:center" id="mesa"></div>
         <div style="display:flex;justify-content:center;gap:10px;margin-top:12px" id="mano"></div>
-      </div>
+      </div></div>
       <div class="card"><p id="msg" style="margin:0">Gana quien pase de 60 puntos. Palo de triunfo abajo a la izquierda.</p></div>
       <div class="row"><button class="btn ghost" id="nw">Nueva partida</button></div>`;
     root.querySelector('#bk').onclick = () => App.go('hub');

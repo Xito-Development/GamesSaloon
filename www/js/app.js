@@ -232,7 +232,22 @@ const App = {
     v.querySelector('#onl').onclick = () => this.go('online', game);
   },
 
-  play(v, { game, diff, players }) { game.mod().mount(v, { diff, players }); },
+  play(v, { game, diff, players }) { game.mod().mount(v, { diff, players }); this.split(v); },
+
+  // En horizontal coloca el tablero a la izquierda y los controles a la derecha
+  split(v) {
+    const head = v.querySelector('.board-head'), board = v.querySelector('.board-wrap');
+    if (!head || !board || v.querySelector('.split')) return;
+    const wrap = document.createElement('div'); wrap.className = 'split';
+    const side = document.createElement('div'); side.className = 'side';
+    const rest = [];
+    let n = board.nextSibling;
+    while (n) { const next = n.nextSibling; rest.push(n); n = next; }
+    head.after(wrap);
+    wrap.appendChild(board);
+    rest.forEach(el => side.appendChild(el));
+    wrap.appendChild(side);
+  },
 
   online(v, game) {
     const g = game || GAMES.find(x => x.id === 'bingo');
@@ -331,7 +346,7 @@ const App = {
           <button data-t="light" class="${this.state.theme === 'light' ? 'on' : ''}">Claro</button></div>
         <div class="row"><button class="btn ghost" id="reset">Borrar estadísticas</button></div>
       </div>
-      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v1.1</p></div>`;
+      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v1.2</p></div>`;
     v.querySelector('#bk').onclick = () => this.go('hub');
     const nm = v.querySelector('#nm');
     nm.oninput = () => { this.state.name = nm.value; this.save(); this.refreshDrawer(); };
