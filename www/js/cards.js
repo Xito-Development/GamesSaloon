@@ -25,10 +25,9 @@ const Cards = {
   },
   el(c, { w = 58, faceDown = false } = {}) {
     const d = document.createElement('div');
-    d.className = 'pcard' + (faceDown ? ' back' : (c && c.red ? ' red' : ''));
+    d.className = 'pcard' + (faceDown ? ' back' : '');
     d.style.width = w + 'px'; d.style.height = Math.round(w * 1.45) + 'px';
-    d.style.fontSize = Math.round(w * 0.26) + 'px';
-    if (!faceDown && c) d.innerHTML = `<div class="top">${c.r}${c.s}</div><div class="mid">${c.s}</div><div class="bot">${c.r}${c.s}</div>`;
+    d.innerHTML = (faceDown || !c) ? Naipes.dorso(w) : Naipes.svg(c, w);
     return d;
   }
 };

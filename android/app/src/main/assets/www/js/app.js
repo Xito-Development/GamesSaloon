@@ -504,7 +504,7 @@ const App = {
           <button data-v="0" class="${this.state.vibrar === false ? 'on' : ''}">Desactivada</button></div>
         <div class="row"><button class="btn ghost" id="reset">Borrar estadísticas</button></div>
       </div>
-      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v2.0</p></div>`;
+      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v2.1</p></div>`;
     v.querySelector('#bk').onclick = () => this.go('hub');
     const nm = v.querySelector('#nm');
     nm.oninput = () => { this.state.name = nm.value; this.save(); this.refreshDrawer(); };

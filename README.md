@@ -23,3 +23,6 @@ Abre `www/index.html` en el navegador del móvil o del PC: la app funciona igual
 
 ## Pruebas
 `node tests/test.js`, `tests/brisca.js`, `tests/bingo.js`, `tests/bingo-partida.js` `tests/ajedrez.js` (perft) `tests/chinchon.js` y `tests/nuevos.js` simulan miles de jugadas en los ocho juegos y falla si algo casca. La compilación en GitHub las ejecuta antes de generar el APK.
+
+## Naipes
+Las cartas (francesa y española) están dibujadas en SVG dentro de `www/js/naipes.js`: figuras, palos y dorso propios, sin imágenes externas ni dependencias, así que escalan sin pixelarse y funcionan sin conexión.

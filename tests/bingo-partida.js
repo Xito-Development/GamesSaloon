@@ -13,7 +13,7 @@ w.crypto = { randomUUID: () => 'x' };
 const realInterval = w.setInterval.bind(w);
 w.setInterval = (fn) => realInterval(fn, 1);   // bolas a toda velocidad
 
-const files = ['js/audio.js', 'js/cards.js', 'js/anim.js', 'js/bingo-carton.js', 'js/net.js', 'js/games/solitario.js',
+const files = ['js/audio.js', 'js/naipes.js', 'js/cards.js', 'js/anim.js', 'js/bingo-carton.js', 'js/net.js', 'js/games/solitario.js',
   'js/games/bingo.js', 'js/games/ajedrez-reglas.js', 'js/games/ajedrez.js', 'js/games/brisca.js', 'js/games/parchis.js', 'js/games/cinquillo.js',
   'js/games/chinchon.js', 'js/games/damas.js', 'js/games/domino.js', 'js/games/escoba.js', 'js/games/conecta4.js', 'js/games/oca.js', 'js/games/reversi.js', 'js/games/generala.js', 'js/games/buscaminas.js', 'js/games/online.js', 'js/app.js'];
 const api = w.eval(files.map(f => fs.readFileSync(path + f, 'utf8')).join('\n;\n') + '\n;({App, GAMES});');
