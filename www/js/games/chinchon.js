@@ -7,21 +7,24 @@ const Chinchon = {
   mount(root, opts) {
     const diff = opts.diff || 'medio';
     const V = this.VAL, O = this.ORD;
-    let deck, me, bot, pile, turn, drawn, over, score = { me: 0, bot: 0 };
+    let deck, me, bot, pile, turn, drawn, over, finPartida = false, score = { me: 0, bot: 0 };
+    const LIMITE = 100;
 
     root.innerHTML = `
       <div class="board-head"><button class="back" id="bk">← Salir</button>
         <div class="hud">Tú <b id="sm">0</b> · Bot <b id="sb">0</b><br><span id="rest"></span></div></div>
       <div class="board-wrap"><div class="felt">
-        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:10px" id="botrow"></div>
-        <div style="display:flex;justify-content:center;gap:22px;align-items:center" id="centro"></div>
+        <div style="display:flex;justify-content:center;gap:6px;margin-bottom:10px;flex-wrap:wrap" id="botrow"></div>
+        <div style="display:flex;justify-content:center;gap:22px;align-items:center;flex-wrap:wrap" id="centro"></div>
       </div></div>
       <div class="card"><p id="msg" style="margin:0"></p><p id="dw" style="margin:6px 0 0;color:var(--primary)"></p></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:14px" id="mano"></div>
-      <div class="row"><button class="btn ghost" id="cerrar">Cerrar</button><button class="btn" id="nw">Nueva ronda</button></div>`;
+      <div class="row"><button class="btn ghost" id="cerrar">Cerrar</button><button class="btn" id="nw">Nueva ronda</button></div>
+      <div class="row"><button class="btn ghost" id="reinicio">Reiniciar partida</button></div>`;
     const $ = s => root.querySelector(s);
     $('#bk').onclick = () => App.go('hub');
-    $('#nw').onclick = deal;
+    $('#nw').onclick = () => { if (finPartida) return App.toast('La partida ha terminado, pulsa Reiniciar'); deal(); };
+    $('#reinicio').onclick = () => { score = { me: 0, bot: 0 }; finPartida = false; deal(); App.toast('Partida nueva a ' + LIMITE + ' puntos'); };
     $('#cerrar').onclick = () => close(0);
     const say = t => $('#msg').textContent = t;
 
@@ -29,6 +32,7 @@ const Chinchon = {
       deck = Cards.shuffle(Cards.spanishDeck());
       me = deck.splice(0, 7); bot = deck.splice(0, 7);
       pile = [deck.pop()]; turn = 0; drawn = false; over = false;
+      if (finPartida) return;
       sortHand(); say('Roba del mazo o del descarte, y luego tira una carta.');
       render();
     }
@@ -74,7 +78,7 @@ const Chinchon = {
     }
 
     function draw(from) {
-      if (turn !== 0 || drawn || over) return;
+      if (turn !== 0 || drawn || over || finPartida) return;
       const c = from === 'pile' ? pile.pop() : deck.pop();
       if (!c) { say('Mazo agotado, ronda en tablas'); over = true; return render(); }
       me.push(c); drawn = true; sortHand(); Audio2.sfx('card');
@@ -99,12 +103,21 @@ const Chinchon = {
       const mine = best(me), his = best(bot);
       const chin = isChinchon(who === 0 ? me : bot);
       over = true;
-      score.me += mine; score.bot += his;
+      // el que cierra no suma; el chinchón resta 10 al que lo canta
+      score.me += (who === 0 ? (chin ? -10 : 0) : mine);
+      score.bot += (who === 1 ? (chin ? -10 : 0) : his);
       const gano = chin ? who === 0 : (who === 0 ? mine <= his : his <= mine);
       say(`Cierre de ${who === 0 ? 'tu parte' : 'el bot'}${chin ? ' con CHINCHÓN' : ''}: tú ${mine} · bot ${his}. ${gano ? 'Ganas la ronda 🎉' : 'Gana el bot'}`);
       Audio2.sfx(gano ? 'win' : 'bad');
-      App.record('chinchon', gano ? 'win' : 'loss');
       render();
+      if (score.me >= LIMITE || score.bot >= LIMITE) {
+        finPartida = true;
+        const ganas = score.me < score.bot;
+        say(`Partida terminada ${score.me}–${score.bot}: ${ganas ? 'ganas tú 🎉' : 'gana el bot'} (pierde quien llega a ${LIMITE})`);
+        App.record('chinchon', ganas ? 'win' : 'loss');
+      } else {
+        say($('#msg').textContent + ` · Marcador ${score.me}–${score.bot} (se pierde a ${LIMITE})`);
+      }
     }
     function botTurn() {
       if (over) return;
@@ -127,20 +140,20 @@ const Chinchon = {
       $('#sm').textContent = score.me; $('#sb').textContent = score.bot;
       $('#rest').textContent = deck.length + ' en el mazo';
       const br = $('#botrow'); br.innerHTML = '';
-      bot.forEach(c => br.appendChild(Cards.el(c, { w: 42, faceDown: !over })));
+      bot.forEach(c => br.appendChild(Cards.el(c, { w: Cards.fit(9, 42), faceDown: !over })));
       const ce = $('#centro'); ce.innerHTML = '';
-      const mz = Cards.el(null, { w: 68, faceDown: true }); mz.onclick = () => draw('deck'); ce.appendChild(mz);
-      const pl = pile.length ? Cards.el(pile[pile.length - 1], { w: 68 }) : document.createElement('div');
+      const mz = Cards.el(null, { w: Cards.fit(4, 68), faceDown: true }); mz.onclick = () => draw('deck'); ce.appendChild(mz);
+      const pl = pile.length ? Cards.el(pile[pile.length - 1], { w: Cards.fit(4, 68) }) : document.createElement('div');
       pl.onclick = () => draw('pile'); ce.appendChild(pl);
       const h = $('#mano'); const first = !h.dataset.done; h.innerHTML = '';
       me.forEach((c, i) => {
-        const e = Cards.el(c, { w: 56 });
+        const e = Cards.el(c, { w: Cards.fit(8, 56) });
         if (turn === 0 && drawn && !over) { e.onclick = () => discard(i); e.style.cursor = 'pointer'; }
         h.appendChild(e);
       });
       if (first) { h.dataset.done = '1'; Anim.deal([...h.children], 60); }
       $('#dw').textContent = over ? '' : 'Puntos muertos ahora: ' + best(me);
-      $('#cerrar').style.opacity = turn === 0 && drawn && !over ? 1 : .45;
+      $('#cerrar').style.opacity = turn === 0 && drawn && !over && !finPartida ? 1 : .45;
     }
     deal();
   }

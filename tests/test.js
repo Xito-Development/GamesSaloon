@@ -19,9 +19,9 @@ w.HTMLElement.prototype.animate = () => ({ finished: Promise.resolve() });
 
 const errors = [];
 w.addEventListener('error', e => errors.push('window error: ' + e.message));
-const files = ['js/audio.js', 'js/cards.js', 'js/anim.js', 'js/net.js', 'js/games/solitario.js', 'js/games/bingo.js',
-  'js/games/ajedrez.js', 'js/games/brisca.js', 'js/games/parchis.js', 'js/games/cinquillo.js',
-  'js/games/chinchon.js', 'js/games/damas.js', 'js/games/online.js', 'js/app.js'];
+const files = ['js/audio.js', 'js/cards.js', 'js/anim.js', 'js/bingo-carton.js', 'js/net.js', 'js/games/solitario.js', 'js/games/bingo.js',
+  'js/games/ajedrez-reglas.js', 'js/games/ajedrez.js', 'js/games/brisca.js', 'js/games/parchis.js', 'js/games/cinquillo.js',
+  'js/games/chinchon.js', 'js/games/damas.js', 'js/games/domino.js', 'js/games/escoba.js', 'js/games/conecta4.js', 'js/games/oca.js', 'js/games/reversi.js', 'js/games/generala.js', 'js/games/buscaminas.js', 'js/games/online.js', 'js/app.js'];
 const src = files.map(f => fs.readFileSync(path + f, 'utf8')).join('\n;\n');
 let api;
 try { api = w.eval(src + '\n;({App, GAMES, Cards, Net, Audio2});'); }
@@ -31,13 +31,24 @@ w.App = api.App; w.GAMES = api.GAMES;
 
 const run = (label, fn) => { try { fn(); console.log('OK  ' + label); } catch (e) { errors.push(label + ' → ' + e.message + '\n' + (e.stack || '').split('\n')[1]); console.log('ERR ' + label + ': ' + e.message); } };
 
-run('App.init', () => w.App.init());
+run('App.init', () => { if (!w.App.route) w.App.init(); });
+
+// detector: una misma partida no puede registrar dos resultados
+const recOrig = w.App.record.bind(w.App);
+const vistos = {};
+w.App.record = function (game, res) {
+  const k = w.App.gen + ':' + game;
+  vistos[k] = (vistos[k] || 0) + 1;
+  if (vistos[k] === 2) errors.push('resultado duplicado en ' + game + ' (la misma partida se registró ' + vistos[k] + ' veces)');
+  return recOrig(game, res);
+};
 const G = w.GAMES;
 G.filter(g => g.mod).forEach(game => {
   run('setup ' + game.id, () => w.App.go('setup', game));
   run('play ' + game.id, () => w.App.go('play', { game, diff: 'medio', players: game.id === 'cinquillo' ? 4 : 4 }));
 });
 run('stats', () => w.App.go('stats'));
+run('logros', () => w.App.go('logros'));
 run('settings', () => w.App.go('settings'));
 run('hub', () => w.App.go('hub'));
 
@@ -110,7 +121,9 @@ for (let rep = 0; rep < 8; rep++) {
     run('soak ' + game.id + ' #' + rep, () => {
       w.App.go('play', { game, diff: ['facil', 'medio', 'dificil'][rep % 3], players: game.id === 'cinquillo' ? [3, 4, 6][rep % 3] : [2, 3, 4][rep % 3] });
       for (let i = 0; i < 60; i++) {
-        const els = [...w.document.querySelectorAll('#view *')].filter(e => e.onclick);
+        // no tocamos los botones que reinician la partida: falsearían el detector de duplicados
+        const els = [...w.document.querySelectorAll('#view *')]
+          .filter(e => e.onclick && !['nw', 'nuevo', 'reinicio'].includes(e.id));
         if (!els.length) break;
         els[Math.floor(Math.random() * els.length)].click();
       }

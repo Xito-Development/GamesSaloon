@@ -94,7 +94,9 @@ const Audio2 = (() => {
       init(); ctx.resume();
       for (let i = 0; i < 7; i++) setTimeout(() => this.sfx('card'), i * 55);
     },
+    vibrar(ms) { try { if (navigator.vibrate && App.state.vibrar !== false) navigator.vibrate(ms); } catch (e) { } },
     sfx(kind) {
+      this.vibrar(kind === 'win' ? [40, 60, 90] : kind === 'bad' ? 80 : kind === 'chip' ? 25 : 12);
       if (kind === 'win') return this.chord([523, 659, 784, 1047], .55, .14);
       if (kind === 'bad') return this.chord([330, 262], .5, .12);
       init(); ctx.resume();

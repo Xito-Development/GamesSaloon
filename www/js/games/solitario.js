@@ -2,7 +2,7 @@ const Solitario = {
   id: 'solitario', name: 'Solitario', hasBot: false,
   mount(root, opts) {
     let stock = [], waste = [], found = [[], [], [], []], tab = [[], [], [], [], [], [], []];
-    let sel = null, moves = 0, t0 = Date.now(), timer;
+    let sel = null, moves = 0, t0 = Date.now(), timer, ganado = false;
 
     root.innerHTML = `
       <div class="board-head">
@@ -22,7 +22,7 @@ const Solitario = {
 
     function deal() {
       const d = Cards.shuffle(Cards.frenchDeck());
-      found = [[], [], [], []]; tab = [[], [], [], [], [], [], []]; waste = []; sel = null; moves = 0; t0 = Date.now();
+      found = [[], [], [], []]; tab = [[], [], [], [], [], [], []]; waste = []; sel = null; moves = 0; t0 = Date.now(); ganado = false;
       for (let i = 0; i < 7; i++) for (let j = 0; j <= i; j++) { const c = d.pop(); c.up = (j === i); tab[i].push(c); }
       stock = d.map(c => (c.up = false, c));
       render();
@@ -80,7 +80,11 @@ const Solitario = {
       });
       felt.appendChild(cols);
       root.querySelector('#mv').textContent = moves;
-      if (found.every(f => f.length === 13)) { Audio2.sfx('win'); App.toast('¡Solitario resuelto en ' + moves + ' movimientos!'); App.record('solitario', 'win'); }
+      if (!ganado && found.every(f => f.length === 13)) {
+        ganado = true; clearInterval(timer);
+        Audio2.sfx('win'); App.toast('¡Solitario resuelto en ' + moves + ' movimientos!');
+        App.record('solitario', 'win');
+      }
     }
     function slot(w) {
       const d = document.createElement('div');

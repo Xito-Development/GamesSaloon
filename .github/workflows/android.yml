@@ -20,6 +20,12 @@ jobs:
         run: |
           npm install jsdom --no-save --silent
           node tests/test.js
+          node tests/brisca.js
+          node tests/bingo.js
+          node tests/bingo-partida.js
+          node tests/ajedrez.js
+          node tests/chinchon.js
+          node tests/nuevos.js
 
       - name: Preparar Java 17
         uses: actions/setup-java@v4

@@ -40,8 +40,10 @@ const Sala = {
       const min = g === 'cinquillo' ? 3 : 2;
       if (g === 'brisca' && players.length !== 2) return App.toast('La brisca online es de 2 jugadores');
       if (g === 'parchis' && players.length > 4) return App.toast('El parchís online es de 2 a 4 jugadores');
+      if (g === 'conecta4' && players.length !== 2) return App.toast('El conecta 4 online es de 2 jugadores');
       if (players.length < min) return App.toast(`Hacen falta al menos ${min} jugadores`);
-      const st = g === 'cinquillo' ? CinquilloOnline.deal(players)
+      const st = g === 'conecta4' ? Conecta4Online.deal(players)
+        : g === 'cinquillo' ? CinquilloOnline.deal(players)
         : g === 'parchis' ? ParchisOnline.deal(players)
         : g === 'brisca' ? BriscaOnline.deal(players)
         : { started: true, game: 'bingo', drawn: [] };
@@ -62,11 +64,12 @@ const Sala = {
         const g = st.game;
         const t = { ...tally };
         if (st.over && st.over !== 'empate') t[st.over] = (t[st.over] || 0) + 1;
-        const ns = g === 'cinquillo' ? CinquilloOnline.deal(players)
+        const ns = g === 'conecta4' ? Conecta4Online.deal(players)
+          : g === 'cinquillo' ? CinquilloOnline.deal(players)
           : g === 'brisca' ? BriscaOnline.deal(players)
             : g === 'parchis' ? ParchisOnline.deal(players) : null;
         if (!ns) return;
-        [CinquilloOnline, BriscaOnline, ParchisOnline].forEach(m => { m.started = false; m._done = false; });
+        [CinquilloOnline, BriscaOnline, ParchisOnline, Conecta4Online].forEach(m => { m.started = false; m._done = false; });
         $('#table').innerHTML = '';
         await Net.setState({ ...ns, tally: t }, { status: 'playing' });
       };
@@ -86,6 +89,7 @@ const Sala = {
         if (r.state.game === 'cinquillo') CinquilloOnline.run(root, r, players);
         else if (r.state.game === 'brisca') BriscaOnline.run(root, r, players);
         else if (r.state.game === 'parchis') ParchisOnline.run(root, r, players);
+        else if (r.state.game === 'conecta4') Conecta4Online.run(root, r, players);
         else BingoOnline.run(root, r, isHost());
         torneo(r);
       },
@@ -107,7 +111,7 @@ const Sala = {
           while (box.children.length > 4) box.removeChild(box.firstChild);
         } else if (m.payload.type === 'linea') {
           const who = players.find(p => p.id === m.player_id);
-          App.toast(`${who ? who.name : 'Alguien'} canta línea`);
+          App.toast(`${who ? who.name : 'Alguien'} canta ${m.payload.n === 2 ? 'DOS LÍNEAS' : 'LÍNEA'}`);
         }
       }
     });
@@ -117,12 +121,12 @@ const Sala = {
 };
 
 const BingoOnline = {
-  board: null, tid: null, started: false,
-  stop() { clearInterval(this.tid); this.tid = null; },
+  board: null, tid: null, started: false, over: false,
+  stop() { clearInterval(this.tid); this.tid = null; this.over = true; },
   run(root, room, isHost) {
     const t = root.querySelector('#table');
     if (!this.started) {
-      this.started = true;
+      this.started = true; this.over = false;
       this.board = this.make();
       root.querySelector('#start').style.display = 'none';
       t.innerHTML = `<div class="felt" style="margin-top:14px">
@@ -130,11 +134,15 @@ const BingoOnline = {
           <div id="ocard"></div></div>
         <div class="row"><button class="btn ghost" id="ol">¡Línea!</button><button class="btn sec" id="obg">¡BINGO!</button></div>`;
       root.querySelector('#ol').onclick = () => {
-        const line = this.board.grid.some(r => r.filter(x => x !== null).every(x => this.board.marks.has(x)));
-        line ? Net.send({ type: 'linea' }) : App.toast('Aún no tienes línea');
+        if (this.over) return;
+        const l = this.lineas(this.board);
+        if (l > this.board.lines) { this.board.lines = l; Net.send({ type: 'linea', n: l }); }
+        else if (l) App.toast('Ya has cantado esa jugada');
+        else App.toast('Aún no tienes línea');
       };
       root.querySelector('#obg').onclick = () => {
-        if (this.board.marks.size === 15) Net.send({ type: 'bingo' });
+        if (this.over) return App.toast('La partida ya ha terminado');
+        if (this.board.marks.size === 15) { this.over = true; Net.send({ type: 'bingo' }); }
         else App.toast('Te faltan ' + (15 - this.board.marks.size) + ' números');
       };
       if (isHost) {
@@ -152,13 +160,8 @@ const BingoOnline = {
     if (drawn.length) { root.querySelector('#ob').textContent = drawn[drawn.length - 1]; Audio2.sfx('chip'); }
     this.render(root, drawn);
   },
-  make() {
-    const grid = Array.from({ length: 3 }, () => Array(9).fill(null));
-    const cols = Array.from({ length: 9 }, (_, c) => Cards.shuffle(
-      Array.from({ length: c === 8 ? 11 : 10 }, (_, i) => c * 10 + i + (c === 0 ? 1 : 0))));
-    for (let r = 0; r < 3; r++) Cards.shuffle([...Array(9).keys()]).slice(0, 5).forEach(c => grid[r][c] = cols[c].pop());
-    return { grid, marks: new Set() };
-  },
+  make() { return { grid: BingoCarton.nuevo(), marks: new Set(), lines: 0 }; },
+  lineas(b) { return b.grid.filter(row => row.filter(x => x !== null).every(x => b.marks.has(x))).length; },
   render(root, drawn) {
     const t = root.querySelector('#ocard'); if (!t) return;
     t.innerHTML = '';
@@ -170,7 +173,7 @@ const BingoOnline = {
       d.textContent = has ? n : '';
       d.style.cssText = `aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-weight:700;font-size:14px;
         background:${has ? (ok ? 'var(--primary)' : '#fdf6e6') : 'rgba(255,255,255,.06)'};color:${ok ? 'var(--on-primary)' : '#222'};transition:.25s var(--ease)`;
-      if (has) d.onclick = () => { if (drawn.includes(n)) { this.board.marks.add(n); Audio2.sfx('chip'); this.render(root, drawn); } };
+      if (has) d.onclick = () => { if (!this.over && drawn.includes(n)) { this.board.marks.add(n); Audio2.sfx('chip'); this.render(root, drawn); } };
       g.appendChild(d);
     }));
     t.appendChild(g);
@@ -241,7 +244,7 @@ const CinquilloOnline = {
     mz.innerHTML = '';
     st.mesa.forEach((row, si) => {
       const line = document.createElement('div');
-      line.style.cssText = 'display:flex;gap:4px;align-items:center;min-height:52px';
+      line.style.cssText = 'display:flex;gap:3px;align-items:center;min-height:52px;flex-wrap:wrap;min-width:0';
       const lab = document.createElement('div');
       lab.style.cssText = 'width:26px;font-size:20px;text-align:center';
       lab.textContent = Cards.ES_SUITS[si].s; line.appendChild(lab);
@@ -249,12 +252,12 @@ const CinquilloOnline = {
         const s = document.createElement('div');
         s.style.cssText = 'height:46px;flex:1;border:2px dashed rgba(255,255,255,.2);border-radius:8px;display:grid;place-items:center;font-size:12px;color:#ffffff88';
         s.textContent = 'empieza el 5'; line.appendChild(s);
-      } else row.forEach(c => { const e = Cards.el(c, { w: 38 }); e.style.height = '54px'; line.appendChild(e); });
+      } else row.forEach(c => { const e = Cards.el(c, { w: Cards.fit(11, 38) }); line.appendChild(e); });
       mz.appendChild(line);
     });
     const h = root.querySelector('#cmano'); h.innerHTML = '';
     me.forEach((c, i) => {
-      const e = Cards.el(c, { w: 54 });
+      const e = Cards.el(c, { w: Cards.fit(9, 54) });
       const ok = mine && !st.over && this.playable(c, st.mesa);
       if (ok) { e.style.boxShadow = '0 0 0 3px var(--primary),0 4px 10px rgba(0,0,0,.5)'; e.onclick = () => this.play(st, i, players); }
       else e.style.opacity = mine ? .55 : 1;
@@ -281,7 +284,7 @@ const BriscaOnline = {
 
   deal(players) {
     const d = Cards.shuffle(Cards.spanishDeck());
-    const triunfo = d[0];
+    const triunfo = d.shift();   // la carta de triunfo sale del mazo: es la última en robarse
     const order = players.slice(0, 2).map(p => p.id);
     const hands = {}; const points = {};
     order.forEach(id => { hands[id] = []; points[id] = 0; });
@@ -300,10 +303,10 @@ const BriscaOnline = {
       root.querySelector('#table').innerHTML = `
         <div class="card" id="bhud" style="font-size:13px"></div>
         <div class="felt" style="margin-top:14px">
-          <div style="display:flex;justify-content:center;gap:16px;min-height:110px;align-items:center" id="bmesa"></div>
+          <div style="display:flex;justify-content:center;gap:16px;min-height:110px;align-items:center;flex-wrap:wrap" id="bmesa"></div>
         </div>
         <div class="card"><p id="bmsg" style="margin:0"></p></div>
-        <div style="display:flex;gap:10px;justify-content:center;margin-top:12px" id="bmano"></div>`;
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap" id="bmano"></div>`;
     }
     this.render(root, room.state, players);
   },
@@ -350,10 +353,10 @@ const BriscaOnline = {
       const d = Cards.el(null, { w: 50, faceDown: true }); d.style.cssText += 'position:absolute;top:0;left:25px'; wrap.appendChild(d);
       mz.appendChild(wrap);
     }
-    st.mesa.forEach(m => { const e = Cards.el(m.card, { w: 74 }); e.classList.add('deal'); mz.appendChild(e); });
+    st.mesa.forEach(m => { const e = Cards.el(m.card, { w: Cards.fit(5, 74) }); e.classList.add('deal'); mz.appendChild(e); });
     const h = root.querySelector('#bmano'); h.innerHTML = '';
     (st.hands[Net.me.id] || []).forEach((c, i) => {
-      const e = Cards.el(c, { w: 76 });
+      const e = Cards.el(c, { w: Cards.fit(4, 76) });
       if (mine && !st.over) { e.style.boxShadow = '0 0 0 3px var(--primary),0 4px 10px rgba(0,0,0,.5)'; e.onclick = () => this.play(st, i); }
       else e.style.opacity = .7;
       h.appendChild(e);
@@ -474,5 +477,87 @@ const ParchisOnline = {
         }
       });
     });
+  }
+};
+
+
+/* ---- Conecta 4 online (2 jugadores) ---- */
+const Conecta4Online = {
+  started: false, _done: false, COLS: 7, FILAS: 6,
+  deal(players) {
+    const order = players.slice(0, 2).map(p => p.id);
+    return { started: true, game: 'conecta4', order, turn: 0, b: Array(42).fill(0), over: null, ultima: null };
+  },
+  libre(b, c) { for (let f = this.FILAS - 1; f >= 0; f--) if (!b[f * this.COLS + c]) return f; return -1; },
+  gana(b, j) {
+    const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+    for (let f = 0; f < this.FILAS; f++) for (let c = 0; c < this.COLS; c++) {
+      if (b[f * this.COLS + c] !== j) continue;
+      for (const [df, dc] of dirs) {
+        let n = 0;
+        for (let k = 0; k < 4; k++) {
+          const nf = f + df * k, nc = c + dc * k;
+          if (nf < 0 || nf >= this.FILAS || nc < 0 || nc >= this.COLS || b[nf * this.COLS + nc] !== j) break;
+          n++;
+        }
+        if (n === 4) return true;
+      }
+    }
+    return false;
+  },
+  run(root, room, players) {
+    if (!this.started) {
+      this.started = true; this._done = false;
+      root.querySelector('#start').style.display = 'none';
+      root.querySelector('#table').innerHTML = `
+        <div class="card" id="c4hud" style="font-size:13px"></div>
+        <div class="board-wrap"><div id="c4bd" style="background:linear-gradient(160deg,#1d4ed8,#132f7a);border-radius:var(--r-md);padding:10px;box-shadow:var(--shadow)"></div></div>
+        <div class="card"><p id="c4msg" style="margin:0"></p></div>`;
+    }
+    this.render(root, room.state, players);
+  },
+  async jugar(st, c) {
+    const f = this.libre(st.b, c);
+    if (f < 0) return App.toast('Columna llena');
+    const yo = st.order.indexOf(Net.me.id) + 1;
+    const b = st.b.slice();
+    b[f * this.COLS + c] = yo;
+    Audio2.sfx('chip');
+    const gano = this.gana(b, yo);
+    const lleno = b.every(x => x);
+    await Net.setState({
+      ...st, b, ultima: f * this.COLS + c,
+      turn: (st.turn + 1) % 2,
+      over: gano ? Net.me.id : lleno ? 'empate' : null
+    }, gano || lleno ? { status: 'finished' } : {});
+  },
+  render(root, st, players) {
+    const nameOf = id => (players.find(p => p.id === id) || {}).name || 'Rival';
+    const yo = st.order.indexOf(Net.me.id) + 1;
+    const mine = st.order[st.turn] === Net.me.id && !st.over;
+    const hud = root.querySelector('#c4hud'); if (!hud) return;
+    hud.innerHTML = st.order.map((id, i) =>
+      `<span style="color:${i === 0 ? '#e05252' : '#f0b429'}">●</span> ${st.order[st.turn] === id && !st.over ? '<b>' : ''}${nameOf(id)}${id === Net.me.id ? ' (tú)' : ''}${st.order[st.turn] === id && !st.over ? '</b>' : ''}`).join('<br>');
+    const bd = root.querySelector('#c4bd'); bd.innerHTML = '';
+    const g = document.createElement('div');
+    g.style.cssText = `display:grid;grid-template-columns:repeat(${this.COLS},1fr);gap:6px`;
+    for (let i = 0; i < 42; i++) {
+      const d = document.createElement('div');
+      const v = st.b[i];
+      const color = v === 1 ? 'radial-gradient(circle at 32% 28%,#ff8a80,#c62828)'
+        : v === 2 ? 'radial-gradient(circle at 32% 28%,#ffe082,#f0a800)'
+          : 'radial-gradient(circle at 50% 50%,#0b1c47,#08123190)';
+      d.style.cssText = `aspect-ratio:1;border-radius:50%;background:${color};box-shadow:inset 0 3px 8px rgba(0,0,0,.55);transition:background .25s`;
+      if (st.ultima === i) d.classList.add('pop-in');
+      if (mine) d.onclick = () => this.jugar(st, i % this.COLS);
+      g.appendChild(d);
+    }
+    bd.appendChild(g);
+    const msg = root.querySelector('#c4msg');
+    if (st.over) {
+      const win = st.over === Net.me.id;
+      msg.textContent = st.over === 'empate' ? 'Tablero lleno: empate' : win ? '¡Cuatro en raya, ganas! 🎉' : `Gana ${nameOf(st.order[(st.order.indexOf(Net.me.id) + 1) % 2])}`;
+      if (!this._done && st.over !== 'empate') { this._done = true; Audio2.sfx(win ? 'win' : 'bad'); App.record('conecta4', win ? 'win' : 'loss'); }
+    } else msg.textContent = mine ? `Tu turno (fichas ${yo === 1 ? 'rojas' : 'amarillas'})` : `Juega ${nameOf(st.order[st.turn])}`;
   }
 };

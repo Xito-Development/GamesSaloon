@@ -1,4 +1,9 @@
 const Cards = {
+  // ancho de carta que cabe seguro para n cartas en la fila
+  fit(n, max = 78, min = 26) {
+    const ancho = Math.min(window.innerWidth || 360, 620) - 32;
+    return Math.max(min, Math.min(max, Math.floor(ancho / n) - 8));
+  },
   FR_SUITS: [{ s: '♠', red: 0 }, { s: '♥', red: 1 }, { s: '♦', red: 1 }, { s: '♣', red: 0 }],
   FR_RANKS: ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'],
   ES_SUITS: [{ s: '🌰', n: 'oros', red: 1 }, { s: '🍺', n: 'copas', red: 1 }, { s: '⚔️', n: 'espadas', red: 0 }, { s: '🏑', n: 'bastos', red: 0 }],

@@ -3,7 +3,7 @@ const Damas = {
   id: 'damas', name: 'Damas', hasBot: true,
   mount(root, opts) {
     const depth = { facil: 1, medio: 3, dificil: 5 }[opts.diff || 'medio'];
-    let b, turn, sel, over, chain = null;
+    let b, turn, sel, over, chain = null, sinComer = 0, vistas = {};
 
     root.innerHTML = `
       <div class="board-head"><button class="back" id="bk">← Salir</button>
@@ -18,7 +18,7 @@ const Damas = {
     function init() {
       b = Array(64).fill('.');
       for (let i = 0; i < 64; i++) { if (!dark(i)) continue; const r = i >> 3; if (r < 3) b[i] = 'n'; if (r > 4) b[i] = 'b'; }
-      turn = 'b'; sel = null; over = false; chain = null; render(); status();
+      turn = 'b'; sel = null; over = false; chain = null; sinComer = 0; vistas = {}; render(); status();
     }
     const mine = (c, t) => c !== '.' && c.toLowerCase() === t;
     const isK = c => c === c.toUpperCase() && c !== '.';
@@ -113,10 +113,15 @@ const Damas = {
       let best = null, bv = 1e9;
       Cards.shuffle(ms).forEach(m => { const v = search(applyMove(b, m), 'b', depth - 1, -1e9, 1e9); if (v < bv) { bv = v; best = m; } });
       grab(best.from); lastTo = best.seq[best.seq.length - 1].to;
+      sinComer = best.seq[0].vic !== undefined ? 0 : sinComer + 1;
       b = applyMove(b, best); turn = 'b'; Audio2.sfx(best.seq[0].vic !== undefined ? 'chip' : 'card');
       render(); status();
     }
     function status() {
+      const k = b.join('') + turn;
+      vistas[k] = (vistas[k] || 0) + 1;
+      if (vistas[k] >= 3) { over = true; $('#hud').textContent = 'Tablas por repetición'; App.toast('Tablas por repetición'); return; }
+      if (sinComer >= 40) { over = true; $('#hud').textContent = 'Tablas: 40 jugadas sin comer'; App.toast('Tablas'); return; }
       const ms = allMoves(b, turn);
       if (!ms.length) {
         over = true;
@@ -124,7 +129,10 @@ const Damas = {
         $('#hud').textContent = win ? '¡Has ganado! 🎉' : 'Gana el bot';
         App.toast($('#hud').textContent); Audio2.sfx(win ? 'win' : 'bad');
         App.record('damas', win ? 'win' : 'loss');
-      } else $('#hud').textContent = turn === 'b' ? (ms[0].seq[0].vic !== undefined ? 'Tu turno — hay captura obligatoria' : 'Tu turno') : 'Piensa el bot…';
+      } else $('#hud').innerHTML = (() => {
+        const mias = b.filter(c => c.toLowerCase() === 'b').length, suyas = b.filter(c => c.toLowerCase() === 'n').length;
+        return `Tú ${mias} · Bot ${suyas}<br>` + (turn === 'b' ? (allMoves(b, 'b')[0].seq[0].vic !== undefined ? 'Captura obligatoria' : 'Tu turno') : 'Piensa el bot…');
+      })();
     }
     let pendingFrom = null, lastTo = null;
     function grab(i) {
@@ -158,6 +166,7 @@ const Damas = {
           const mv = sel !== null ? ms.find(m => m.from === sel && m.seq[m.seq.length - 1].to === i) : null;
           if (mv) {
             grab(mv.from); lastTo = mv.seq[mv.seq.length - 1].to;
+            sinComer = mv.seq[0].vic !== undefined ? 0 : sinComer + 1;
             b = applyMove(b, mv); sel = null; turn = 'n';
             Audio2.sfx(mv.seq[0].vic !== undefined ? 'chip' : 'card'); render(); status();
             if (!over) App.timer(botMove, 300);

@@ -166,3 +166,21 @@ label.fl{display:block;font-size:12px;color:var(--on-dim);margin:12px 0 6px;lett
 @media(min-width:1000px){
   .board-wrap{max-width:min(70vh,700px)}
 }
+
+
+/* --- nada se sale de la pantalla --- */
+html,body{overflow-x:hidden;max-width:100%}
+#view{overflow-x:hidden}
+#view *{min-width:0}
+.felt{max-width:100%;overflow:hidden}
+.board-head{flex-wrap:wrap}
+.board-head .hud{max-width:60%;word-break:break-word}
+.card,.card p{overflow-wrap:anywhere}
+.split,.split .side{min-width:0;max-width:100%}
+.grid{max-width:100%}
+#drawer{max-width:82vw}
+.seg{flex-wrap:wrap}
+.seg button{min-width:72px}
+.row{flex-wrap:wrap}
+.row .btn{flex:1 1 140px;width:auto}
+#toast{max-width:min(88vw,420px)}

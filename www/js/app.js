@@ -1,3 +1,21 @@
+const REGLAS = {
+  ajedrez: 'Toca una pieza y luego una casilla marcada. Enroque, captura al paso y promoción incluidos. Ganas dando jaque mate.',
+  bingo: 'Cartón de 90 bolas: 15 números, 5 por fila. Marca los números que salgan y canta línea, dos líneas o bingo (cartón lleno) antes que los bots.',
+  brisca: 'Baraja de 40. Tienes 3 cartas y puedes tirar la que quieras. Gana la baza el triunfo más alto o, si no hay triunfos, la carta más alta del palo de salida. As 11, tres 10, rey 4, caballo 3, sota 2. Hay 120 puntos en juego.',
+  solitario: 'Ordena las cuatro pilas del as al rey. En las columnas se colocan cartas alternando color y en orden descendente. Toca una carta y luego su destino.',
+  parchis: 'Saca ficha con un 5 y da la vuelta al tablero hasta tu pasillo. Con un 6 repites tirada, al comer avanzas 20 y al meter ficha 10. Las casillas claras son seguros.',
+  cinquillo: 'Se reparten todas las cartas. Cada palo se abre con el 5 y se va creciendo hacia arriba y hacia abajo. Si no puedes tirar, pasas. Gana quien se queda sin cartas.',
+  chinchon: 'Roba del mazo o del descarte y descarta una carta. Forma tríos y escaleras del mismo palo. Puedes cerrar con 5 puntos muertos o menos; siete cartas seguidas del mismo palo es chinchón.',
+  domino: 'Encadena fichas por los extremos. Si no puedes, robas del pozo; si está vacío, pasas. Gana quien se queda sin fichas o quien menos puntos suma si el juego se cierra.',
+  escoba: 'Tira una carta y llévate las de la mesa que sumen 15 con ella (sota 8, caballo 9, rey 10). Vaciar la mesa es escoba. Puntúan más cartas, más oros, el siete de oros y más sietes. Partida a 15.',
+  conecta4: 'Suelta fichas en las columnas y alinea cuatro en horizontal, vertical o diagonal antes que el bot.',
+  oca: 'Tira el dado y avanza hasta la casilla 63, que hay que clavar exacta. Las ocas te llevan a la siguiente y repites; puentes, dados, pozo, laberinto, cárcel y muerte hacen de las suyas.',
+  reversi: 'Coloca fichas encerrando las del rival entre dos tuyas para darles la vuelta. Gana quien tenga más fichas al final.',
+  generala: 'Tres tiradas por turno guardando los dados que quieras, y anotas en una casilla libre. Escalera, full, póker y generala puntúan más si salen servidas.',
+  buscaminas: 'Destapa casillas sin pisar minas. Los números indican cuántas minas hay alrededor. Marca las minas con bandera (mantén pulsado o activa el modo bandera).',
+  damas: 'Captura obligatoria y siempre la jugada que más coma. Las piezas coronadas (★) se mueven y comen a distancia. Ganas cuando el rival no puede mover.'
+};
+
 const GAMES = [
   { id: 'ajedrez', name: 'Ajedrez', mod: () => Ajedrez, bot: true, badge: null, color: '#f0d9b5', art: 'chess', tag: 'Clásico' },
   { id: 'bingo', name: 'Bingo', mod: () => Bingo, bot: true, online: true, badge: { t: '¡LO MÁS POPULAR!', c: 'pop' }, color: '#ffd166', art: 'bingo', tag: 'Fiesta' },
@@ -6,7 +24,14 @@ const GAMES = [
   { id: 'parchis', name: 'Parchís', mod: () => Parchis, bot: true, badge: { t: '¡NUEVO!' }, color: '#90cdf4', art: 'parchis', tag: 'Hasta 4' },
   { id: 'cinquillo', name: 'Cinquillo', mod: () => Cinquillo, bot: true, badge: { t: '¡NUEVO!' }, color: '#d6bcfa', art: 'cinq', tag: 'Hasta 6' },
   { id: 'chinchon', name: 'Chinchón', mod: () => Chinchon, bot: true, color: '#fbb6ce', art: 'chin', tag: 'Baraja española' },
-  { id: 'damas', name: 'Damas', mod: () => Damas, bot: true, badge: { t: '¡NUEVO!' }, color: '#e2c39a', art: 'damas', tag: 'Clásico' }
+  { id: 'damas', name: 'Damas', mod: () => Damas, bot: true, color: '#e2c39a', art: 'damas', tag: 'Clásico' },
+  { id: 'domino', name: 'Dominó', mod: () => Domino, bot: true, badge: { t: '¡NUEVO!' }, color: '#cbd5e1', art: 'domino', tag: 'Hasta 4' },
+  { id: 'escoba', name: 'Escoba', mod: () => Escoba, bot: true, color: '#86efac', art: 'escoba', tag: 'Baraja española' },
+  { id: 'conecta4', name: 'Conecta 4', mod: () => Conecta4, bot: true, badge: { t: '¡NUEVO!' }, color: '#fca5a5', art: 'conecta4', tag: 'Clásico' },
+  { id: 'oca', name: 'La Oca', mod: () => Oca, bot: true, color: '#a7f3d0', art: 'oca', tag: 'Hasta 4' },
+  { id: 'reversi', name: 'Reversi', mod: () => Reversi, bot: true, badge: { t: '¡NUEVO!' }, color: '#e5e7eb', art: 'reversi', tag: 'Clásico' },
+  { id: 'generala', name: 'Generala', mod: () => Generala, bot: true, color: '#fde68a', art: 'generala', tag: 'Dados · hasta 4' },
+  { id: 'buscaminas', name: 'Buscaminas', mod: () => Buscaminas, bot: true, badge: { t: '¡NUEVO!' }, color: '#fca5a5', art: 'buscaminas', tag: 'En solitario' }
 ];
 
 const ART = {
@@ -97,6 +122,69 @@ const ART = {
         display:grid;place-items:center;font-size:20px;font-weight:800;color:#8a1c3b">${['S', 'C', 'R'][i]}</div>`).join('')}
     </div>`,
 
+  domino: `
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#1f3d5c,#0a1622 75%)"></div>
+    <div style="position:absolute;inset:0;display:grid;place-items:center">
+      ${[-18, 0, 18].map((r, i) => `<div style="position:absolute;width:44px;height:72px;border-radius:8px;
+        background:linear-gradient(150deg,#fffdf6,#e3dac6);border:1px solid #b3a68a;box-shadow:0 6px 14px rgba(0,0,0,.55);
+        transform:rotate(${r}deg) translateX(${r * 1.5}px);display:flex;flex-direction:column;align-items:center;
+        justify-content:space-around;font-weight:800;color:#1b1b1b;font-size:17px">
+        <span>${[6, 5, 3][i]}</span><span style="width:70%;height:1px;background:#0003"></span><span>${[6, 2, 4][i]}</span></div>`).join('')}
+    </div>`,
+
+  escoba: `
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#1d6b4f,#07271c 75%)"></div>
+    <div style="position:absolute;inset:0;display:grid;place-items:center">
+      <div style="font-size:44px;font-weight:900;color:#ffe9a8;text-shadow:0 6px 14px rgba(0,0,0,.6)">15</div>
+    </div>
+    <div style="position:absolute;inset:0">
+      ${[[18, 26, '🌰'], [64, 34, '⚔️'], [34, 96, '🍺']].map(([x, y, g]) => `
+      <div style="position:absolute;left:${x}px;top:${y}px;width:40px;height:58px;border-radius:6px;
+        background:linear-gradient(155deg,#fffdf5,#ecdfc6);border:1px solid #b9a880;box-shadow:0 5px 12px rgba(0,0,0,.5);
+        display:grid;place-items:center;font-size:18px">${g}</div>`).join('')}
+    </div>`,
+
+  conecta4: `
+    <div style="position:absolute;inset:0;background:linear-gradient(160deg,#2450d8,#122a6b)"></div>
+    <div style="position:absolute;inset:16px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:8px">
+      ${[0, 1, 0, 2, 2, 0, 1, 0, 1, 2, 0, 1].map(v => `<div style="border-radius:50%;background:${v === 1 ? 'radial-gradient(circle at 32% 28%,#ff8a80,#c62828)' : v === 2 ? 'radial-gradient(circle at 32% 28%,#ffe082,#f0a800)' : 'radial-gradient(circle at 50% 50%,#0b1c47,#0a1633)'};box-shadow:inset 0 3px 8px rgba(0,0,0,.55)"></div>`).join('')}
+    </div>`,
+
+  oca: `
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#1d6b4f,#08281d 75%)"></div>
+    <div style="position:absolute;inset:0;display:grid;place-items:center;font-size:52px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))">🦢</div>
+    <div style="position:absolute;left:14px;bottom:14px;width:44px;height:44px;border-radius:12px;background:linear-gradient(150deg,#fff,#ddd);
+      box-shadow:0 6px 12px rgba(0,0,0,.5);display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:7px;transform:rotate(-10deg)">
+      ${[1, 0, 1, 0, 1, 0, 1, 0, 1].map(v => `<div style="border-radius:50%;background:${v ? '#1b1b1b' : 'transparent'}"></div>`).join('')}
+    </div>`,
+
+  reversi: `
+    <div style="position:absolute;inset:0;background:linear-gradient(160deg,#177245,#0b3d26)"></div>
+    <div style="position:absolute;inset:14px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:5px">
+      ${[0, 1, 2, 0, 2, 2, 1, 1, 1, 1, 2, 2, 0, 2, 1, 0].map(v => `<div style="border-radius:5px;background:#1c8a53;display:grid;place-items:center">
+        ${v ? `<div style="width:76%;height:76%;border-radius:50%;background:${v === 1 ? 'radial-gradient(circle at 32% 28%,#666,#0d0d0d)' : 'radial-gradient(circle at 32% 28%,#fff,#cfc8b8)'};box-shadow:0 3px 6px rgba(0,0,0,.5)"></div>` : ''}</div>`).join('')}
+    </div>`,
+
+  generala: `
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#7a1f3d,#2a0a16 75%)"></div>
+    <div style="position:absolute;inset:0;display:grid;place-items:center">
+      ${[[-40, -14, 5], [6, -30, 6], [40, 6, 3], [-16, 30, 5], [26, 46, 6]].map(([x, y, v]) => `
+      <div style="position:absolute;transform:translate(${x}px,${y}px) rotate(${x / 4}deg);width:44px;height:44px;border-radius:12px;
+        background:linear-gradient(150deg,#fff,#e3ddcf);box-shadow:0 6px 12px rgba(0,0,0,.55);
+        display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:6px">
+        ${[...Array(9).keys()].map(k => `<div style="border-radius:50%;background:${({ 3: [0, 4, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }[v] || []).includes(k) ? '#1b1b1b' : 'transparent'}"></div>`).join('')}
+      </div>`).join('')}
+    </div>`,
+
+  buscaminas: `
+    <div style="position:absolute;inset:0;background:linear-gradient(160deg,#3f4652,#20242c)"></div>
+    <div style="position:absolute;inset:16px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:5px">
+      ${['1', '', '💣', '2', '', '2', '3', '', '1', '', '', '💣', '', '1', '2', ''].map((v, i) => `
+      <div style="border-radius:6px;display:grid;place-items:center;font-weight:800;font-size:15px;
+        background:${v ? 'var(--surf3,#333b45)' : '#e9a13b'};color:${v === '1' ? '#3b82f6' : v === '2' ? '#16a34a' : v === '3' ? '#dc2626' : '#fff'};
+        box-shadow:${v ? 'inset 0 1px 3px rgba(0,0,0,.4)' : '0 2px 4px rgba(0,0,0,.35)'}">${v}</div>`).join('')}
+    </div>`,
+
   damas: `
     <div style="position:absolute;inset:0;background:repeating-conic-gradient(#7b4a2d 0 25%,#e8c9a0 0 50%) 0 0/38px 38px"></div>
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.28),transparent 40%)"></div>
@@ -108,6 +196,19 @@ const ART = {
         display:grid;place-items:center;color:#f0b429;font-size:18px">★</div>
     </div>`
 };
+
+const LOGROS = [
+  { id: 'primera', n: 'Primera mano', d: 'Termina tu primera partida', ok: st => tot(st) >= 1 },
+  { id: 'diez', n: 'Habitual del salón', d: 'Juega 10 partidas', ok: st => tot(st) >= 10 },
+  { id: 'cincuenta', n: 'Parroquiano', d: 'Juega 50 partidas', ok: st => tot(st) >= 50 },
+  { id: 'racha3', n: 'En racha', d: 'Gana 3 seguidas en un mismo juego', ok: st => Object.values(st).some(r => (r.mejor || 0) >= 3) },
+  { id: 'racha5', n: 'Imparable', d: 'Gana 5 seguidas en un mismo juego', ok: st => Object.values(st).some(r => (r.mejor || 0) >= 5) },
+  { id: 'jaque', n: 'Jaque mate', d: 'Gana una partida de ajedrez', ok: st => (st.ajedrez || {}).w >= 1 },
+  { id: 'bingo', n: '¡Bingo!', d: 'Canta un bingo', ok: st => (st.bingo || {}).w >= 1 },
+  { id: 'solit', n: 'Paciencia infinita', d: 'Resuelve un solitario', ok: st => (st.solitario || {}).w >= 1 },
+  { id: 'todos', n: 'Todo el salón', d: 'Gana al menos una vez en cada juego', ok: st => GAMES.filter(g => g.mod).every(g => (st[g.id] || {}).w >= 1) }
+];
+const tot = st => Object.values(st).reduce((a, r) => a + r.w + r.l, 0);
 
 const App = {
   onLeave: null,
@@ -154,10 +255,19 @@ const App = {
     const s = this.state.stats[game] || { w: 0, l: 0 };
     res === 'win' ? s.w++ : s.l++;
     this.state.stats[game] = s;
+    if (res === 'win') { s.racha = (s.racha || 0) + 1; s.mejor = Math.max(s.mejor || 0, s.racha); }
+    else s.racha = 0;
     const gain = res === 'win' ? 10 : 2;
     this.state.points = (this.state.points || 0) + gain;
     if (this.state.name) Net.addPoints(this.state.name, gain, this.state.avatar, this.state.color);
     this.save(); this.refreshDrawer();
+    const nuevos = LOGROS.filter(l => { try { return l.ok(this.state.stats); } catch (e) { return false; } }).map(l => l.id);
+    const antes = this.state.logros || [];
+    nuevos.filter(id => !antes.includes(id)).forEach(id => {
+      const l = LOGROS.find(x => x.id === id);
+      App.timer(() => this.toast('🏅 Logro: ' + l.n), 900);
+    });
+    this.state.logros = nuevos; this.save();
     const lv = this.level();
     if (lv.n !== this._lv) { if (this._lv !== undefined) { this.toast('¡Nuevo rango: ' + lv.name + '!'); Audio2.sfx('win'); } this._lv = lv.n; }
   },
@@ -187,15 +297,37 @@ const App = {
     this.route = route;
     const v = document.getElementById('view');
     v.innerHTML = ''; window.scrollTo(0, 0);
-    ({ hub: this.hub, setup: this.setup, online: this.online, stats: this.stats, settings: this.settings, play: this.play, sala: this.sala, ranking: this.ranking })[route].call(this, v, data);
+    ({ hub: this.hub, setup: this.setup, online: this.online, stats: this.stats, logros: this.logros, settings: this.settings, play: this.play, sala: this.sala, ranking: this.ranking })[route].call(this, v, data);
   },
 
   hub(v) {
-    v.innerHTML = `<div class="section-title">ELIGE MESA</div><div class="grid" id="g"></div>`;
+    const recientes = (this.state.ultimos || []).map(id => GAMES.find(g => g.id === id)).filter(Boolean);
+    v.innerHTML = (recientes.length ? `<div class="section-title">SEGUIR JUGANDO</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px" id="rec">
+        ${recientes.map(g => `<button data-id="${g.id}" style="border:1px solid var(--outline);background:var(--surf2);color:var(--on);
+          font:inherit;font-size:14px;padding:10px 16px;border-radius:999px">${g.name}</button>`).join('')}
+      </div>` : '') +
+      `<div class="section-title">ELIGE MESA</div>
+      <input type="text" id="buscar" placeholder="Buscar juego…" style="margin-bottom:12px">
+      <div class="grid" id="g"></div>`;
+    v.querySelectorAll('#rec button').forEach(b => b.onclick = () => {
+      const game = GAMES.find(g => g.id === b.dataset.id);
+      Audio2.sfx('tick'); this.go('setup', game);
+    });
     const g = v.querySelector('#g');
+    const buscador = v.querySelector('#buscar');
+    buscador.oninput = () => {
+      const q = buscador.value.trim().toLowerCase();
+      [...g.children].forEach(c => {
+        const nombre = (c.dataset.nombre || '') + ' ' + (c.dataset.tag || '');
+        c.style.display = !q || nombre.includes(q) ? '' : 'none';
+      });
+    };
     GAMES.forEach((game, i) => {
       const c = document.createElement('div');
       c.className = 'gcard' + (game.soon ? ' soon' : '');
+      c.dataset.nombre = game.name.toLowerCase();
+      c.dataset.tag = (game.tag || '').toLowerCase();
       c.style.animationDelay = (i * 55) + 'ms';
       c.innerHTML = `<div class="art">${ART[game.art] || ''}</div><div class="veil"></div>
         <div class="lbl" style="color:${game.color}">${game.name}</div>
@@ -211,19 +343,21 @@ const App = {
     v.innerHTML = `
       <div class="board-head"><button class="back" id="bk">← Juegos</button></div>
       <div class="card"><h2>${game.name}</h2><p>${game.tag} · elige cómo quieres jugar.</p>
-        ${game.bot ? `<label class="fl">DIFICULTAD DEL BOT</label><div class="seg" id="dif">
-          ${diffs.map(([k, n], i) => `<button data-d="${k}" class="${i === 1 ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
+        <details style="margin-bottom:6px"><summary style="cursor:pointer;color:var(--primary);font-size:14px">Cómo se juega</summary>
+          <p style="margin:8px 0 0">${REGLAS[game.id] || ''}</p></details>
+        ${game.bot ? `<label class="fl">DIFICULTAD</label><div class="seg" id="dif">
+          ${diffs.map(([k, n]) => `<button data-d="${k}" class="${(this.state.diff || 'medio') === k ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
         ${(game.id === 'parchis' || game.id === 'cinquillo') ? `<label class="fl">JUGADORES</label><div class="seg" id="pl">
           ${(game.id === 'cinquillo' ? [3, 4, 6] : [2, 3, 4]).map((n, i) => `<button data-p="${n}" class="${i === 2 ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
         ${game.id === 'bingo' ? `<label class="fl">JUGADORES</label><div class="seg" id="pl">
           ${[2, 4, 6].map((n, i) => `<button data-p="${n}" class="${i === 1 ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
-        <div class="row"><button class="btn" id="solo">Jugar contra el bot</button></div>
+        <div class="row"><button class="btn" id="solo">${game.id === 'buscaminas' || game.id === 'solitario' ? 'Jugar' : 'Jugar contra el bot'}</button></div>
         <div class="row"><button class="btn ghost" id="onl">Sala online</button></div>
       </div>`;
-    let diff = 'medio', players = game.id === 'cinquillo' ? 6 : 4;
+    let diff = this.state.diff || 'medio', players = game.id === 'cinquillo' ? 6 : 4;
     v.querySelector('#bk').onclick = () => this.go('hub');
     v.querySelectorAll('#dif button').forEach(b => b.onclick = () => {
-      v.querySelectorAll('#dif button').forEach(x => x.classList.remove('on')); b.classList.add('on'); diff = b.dataset.d; Audio2.sfx('tick');
+      v.querySelectorAll('#dif button').forEach(x => x.classList.remove('on')); b.classList.add('on'); diff = b.dataset.d; this.state.diff = diff; this.save(); Audio2.sfx('tick');
     });
     v.querySelectorAll('#pl button').forEach(b => b.onclick = () => {
       v.querySelectorAll('#pl button').forEach(x => x.classList.remove('on')); b.classList.add('on'); players = +b.dataset.p; Audio2.sfx('tick');
@@ -232,7 +366,11 @@ const App = {
     v.querySelector('#onl').onclick = () => this.go('online', game);
   },
 
-  play(v, { game, diff, players }) { game.mod().mount(v, { diff, players }); this.split(v); },
+  play(v, { game, diff, players }) {
+    const u = (this.state.ultimos || []).filter(id => id !== game.id);
+    u.unshift(game.id); this.state.ultimos = u.slice(0, 4); this.save();
+    game.mod().mount(v, { diff, players }); this.split(v);
+  },
 
   // En horizontal coloca el tablero a la izquierda y los controles a la derecha
   split(v) {
@@ -256,7 +394,7 @@ const App = {
       <div class="card"><h2>Jugar online</h2>
         <p>Salas privadas por código, hasta 6 jugadores.</p>
         <label class="fl">JUEGO DE LA SALA</label><div class="seg" id="og">
-          <button data-g="bingo" class="on">Bingo</button><button data-g="cinquillo">Cinquillo</button><button data-g="brisca">Brisca</button><button data-g="parchis">Parchís</button></div>
+          <button data-g="bingo" class="on">Bingo</button><button data-g="cinquillo">Cinquillo</button><button data-g="brisca">Brisca</button><button data-g="parchis">Parchís</button><button data-g="conecta4">Conecta 4</button></div>
         <label class="fl">TU NOMBRE</label><input type="text" id="nm" maxlength="14" placeholder="Cómo te verán en la mesa" value="${this.state.name}">
         <label class="fl">TU AVATAR</label><div id="av" style="display:flex;gap:8px;flex-wrap:wrap">
           ${['🙂','😎','🐺','🦊','🐼','🐲','👑','🤖'].map(a => `<button data-a="${a}" class="avpick" style="font-size:22px;width:44px;height:44px;border-radius:14px;border:2px solid var(--outline);background:var(--surf2)">${a}</button>`).join('')}
@@ -302,7 +440,7 @@ const App = {
     };
   },
 
-  sala(v, data) { [BingoOnline, CinquilloOnline, BriscaOnline, ParchisOnline].forEach(m => { m.started = false; m._done = false; }); Sala.mount(v, data); },
+  sala(v, data) { [BingoOnline, CinquilloOnline, BriscaOnline, ParchisOnline, Conecta4Online].forEach(m => { m.started = false; m._done = false; }); Sala.mount(v, data); },
 
   stats(v) {
     const s = this.state.stats;
@@ -315,8 +453,9 @@ const App = {
         <p style="margin-top:8px">${this.level().next ? 'Siguiente rango a los ' + this.level().next + ' puntos' : 'Rango máximo alcanzado'}</p>
       </div>
       <div class="card"><h2>Estadísticas</h2>
-      ${rows.length ? rows.map(([k, r]) => `<p style="display:flex;justify-content:space-between;color:var(--on)">
-        <span style="text-transform:capitalize">${k}</span><b>${r.w}V · ${r.l}D</b></p>`).join('')
+      ${rows.length ? rows.map(([k, r]) => `<p style="display:flex;justify-content:space-between;gap:10px;color:var(--on)">
+        <span style="text-transform:capitalize">${k}</span>
+        <b>${r.w}V · ${r.l}D${r.mejor ? ` · mejor racha ${r.mejor}` : ''}</b></p>`).join('')
         : '<p>Todavía no has terminado ninguna partida. Empieza por una mesa fácil.</p>'}</div>`;
     v.querySelector('#bk').onclick = () => this.go('hub');
   },
@@ -337,6 +476,22 @@ const App = {
       <b>${r.points}</b></div>`).join('');
   },
 
+  logros(v) {
+    const st = this.state.stats;
+    const hechos = LOGROS.filter(l => { try { return l.ok(st); } catch (e) { return false; } });
+    v.innerHTML = `<div class="board-head"><button class="back" id="bk">← Juegos</button></div>
+      <div class="card"><h2>Logros</h2><p>${hechos.length} de ${LOGROS.length} conseguidos</p>
+      <div style="height:10px;border-radius:99px;background:var(--surf3);overflow:hidden;margin-bottom:12px">
+        <div style="height:100%;width:${Math.round(hechos.length / LOGROS.length * 100)}%;background:var(--primary);transition:width .6s var(--ease)"></div></div>
+      ${LOGROS.map(l => {
+      const ok = hechos.includes(l);
+      return `<div style="display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--outline);opacity:${ok ? 1 : .5}">
+          <span style="font-size:22px">${ok ? '🏅' : '🔒'}</span>
+          <span style="flex:1"><b>${l.n}</b><br><span style="font-size:13px;color:var(--on-dim)">${l.d}</span></span></div>`;
+    }).join('')}</div>`;
+    v.querySelector('#bk').onclick = () => this.go('hub');
+  },
+
   settings(v) {
     v.innerHTML = `<div class="board-head"><button class="back" id="bk">← Juegos</button></div>
       <div class="card"><h2>Ajustes</h2>
@@ -344,15 +499,22 @@ const App = {
         <label class="fl">TEMA</label><div class="seg" id="th">
           <button data-t="dark" class="${this.state.theme === 'dark' ? 'on' : ''}">Oscuro</button>
           <button data-t="light" class="${this.state.theme === 'light' ? 'on' : ''}">Claro</button></div>
+        <label class="fl">VIBRACIÓN</label><div class="seg" id="vb">
+          <button data-v="1" class="${this.state.vibrar !== false ? 'on' : ''}">Activada</button>
+          <button data-v="0" class="${this.state.vibrar === false ? 'on' : ''}">Desactivada</button></div>
         <div class="row"><button class="btn ghost" id="reset">Borrar estadísticas</button></div>
       </div>
-      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v1.2</p></div>`;
+      <div class="card"><p style="margin:0">GamesSaloon · Xito Development · v2.0</p></div>`;
     v.querySelector('#bk').onclick = () => this.go('hub');
     const nm = v.querySelector('#nm');
     nm.oninput = () => { this.state.name = nm.value; this.save(); this.refreshDrawer(); };
     v.querySelectorAll('#th button').forEach(b => b.onclick = () => {
       this.state.theme = b.dataset.t; document.body.dataset.theme = b.dataset.t; this.save();
       v.querySelectorAll('#th button').forEach(x => x.classList.toggle('on', x === b));
+    });
+    v.querySelectorAll('#vb button').forEach(b => b.onclick = () => {
+      this.state.vibrar = b.dataset.v === '1'; this.save();
+      v.querySelectorAll('#vb button').forEach(x => x.classList.toggle('on', x === b));
     });
     v.querySelector('#reset').onclick = () => { this.state.stats = {}; this.save(); this.refreshDrawer(); this.toast('Estadísticas borradas'); };
   }
